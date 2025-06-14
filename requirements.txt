@@ -1,0 +1,8 @@
+Django==4.2
+django-cors-headers
+django-environ
+django-jazzmin
+djangorestframework
+djangorestframework_simplejwt
+drf-yasg
+psycopg2-binary
