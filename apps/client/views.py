@@ -1,4 +1,4 @@
-from rest_framework import generics, status, permissions
+from rest_framework import generics, status, permissions, pagination
 from rest_framework.response import Response
 
 from apps.client import serializers
@@ -16,3 +16,11 @@ class ClientUpdateApiView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.ClientUpdateSerializer
     lookup_field = 'id'
+
+
+class ClientListApiView(generics.ListAPIView):
+    queryset = Client.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.ClientListSerializer
+    pagination_class = pagination.PageNumberPagination
+    

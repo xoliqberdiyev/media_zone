@@ -35,3 +35,9 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
         instance.description = validated_data.get('description')
         instance.status = validated_data.get('status')
         return super().update(instance, validated_data)
+    
+
+class ClientListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Client
+        fields = '__all__'
