@@ -19,7 +19,7 @@ urlpatterns = [
             path('statistics/', income_views.IncomeStatistsApiView.as_view()),
             path('monthly-statistics/', income_views.IncomeMonthlyStatisticsApiView.as_view()),
             path('category/list/', income_views.IncomeCategoryApiView.as_view()),
-            path('category/<uuid:id>/income/list/', views.IncomeListApiView.as_view()),
+            path('category/<uuid:id>/income/list/', income_views.IncomeListApiView.as_view()),
         ]
     ))
 ]
