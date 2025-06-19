@@ -33,3 +33,9 @@ class ExpenceCreateSerializer(serializers.Serializer):
             return expence
         return None
     
+
+class ExpenceListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Expence
+        fields = '__all__'
+        

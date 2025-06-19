@@ -32,4 +32,10 @@ class IncomeCreateSerializer(serializers.Serializer):
             expence = Income.objects.create(**validated_data)
             return expence
         return None
-    
+
+
+class IncomeListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Income
+        fields = '__all__'
+        

@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.utils import timezone
 from django.db.models import Sum
 from django.db.models.functions import ExtractYear, ExtractMonth
+from django.shortcuts import get_object_or_404
 
 from rest_framework import generics, views, permissions
 from rest_framework.response import Response
@@ -89,3 +90,13 @@ class IncomeMonthlyStatisticsApiView(views.APIView):
             result[year][month] = total # 2025: [1: 1000, 2: 1223]
         
         return Response(result)
+
+
+class IncomeListApiView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, id):
+        income_category = get_object_or_404(IncomeCategory, id=id)
+        income = Income.objects.filter(category=income_category)
+        serializer = serializers.IncomeListSerializer(income, many=True)
+        return Response(serializer.data)
