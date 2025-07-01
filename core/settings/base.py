@@ -23,6 +23,7 @@ LOCAL_APPS = [
     'apps.finance',
     'apps.client',
     'apps.estimate',
+    'apps.rooms',
 ]
 
 THIRD_PARTY_PACKAGES = [
