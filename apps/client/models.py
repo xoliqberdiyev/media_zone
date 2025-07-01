@@ -15,7 +15,7 @@ class Client(BaseModel):
     name = models.CharField(max_length=50, db_index=True)
     phone = models.CharField(max_length=15, unique=True, db_index=True)
     status = models.CharField(max_length=12, choices=STATUS)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.name} - {self.status}'

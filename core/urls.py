@@ -24,6 +24,7 @@ urlpatterns = [
          path('auth/', include('apps.authentication.urls')),
          path('finance/', include('apps.finance.urls')),    
          path('client/', include('apps.client.urls')), 
+         path('estimate/', include('apps.estimate.urls')),
       ]
    ))
 ]

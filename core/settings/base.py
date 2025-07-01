@@ -18,10 +18,11 @@ DEBUG = env.bool("DEBUG")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 LOCAL_APPS = [
+    'apps.shared',
     'apps.authentication',
     'apps.finance',
-    'apps.shared',
     'apps.client',
+    'apps.estimate',
 ]
 
 THIRD_PARTY_PACKAGES = [
