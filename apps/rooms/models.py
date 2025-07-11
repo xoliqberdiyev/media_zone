@@ -39,7 +39,7 @@ class RoomOrder(BaseModel):
     
     def save(self, *args, **kwargs):
         now = timezone.now()
-        total = RoomOrder.objects.filter(
+        total = self.objects.filter(
             room=self.room,
             date__month=now.month,
             date__year=now.year
@@ -48,3 +48,11 @@ class RoomOrder(BaseModel):
         self.room.monthly_income = total
         self.room.save()
         super().save(*args, **kwargs)
+
+    
+class RoomImage(BaseModel):
+    image = models.ImageField(upload_to="media/room_images/")
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="room_images")
+
+    def __str__(self):
+        return self.room.name

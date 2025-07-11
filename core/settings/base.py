@@ -24,6 +24,7 @@ LOCAL_APPS = [
     'apps.client',
     'apps.estimate',
     'apps.rooms',
+    'apps.web',
 ]
 
 THIRD_PARTY_PACKAGES = [
@@ -123,11 +124,11 @@ USE_TZ = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'static'
+STATIC_URL = 'resources/static/'
+STATIC_ROOT = BASE_DIR / 'resources/static'
 
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = 'resources/media/'
+MEDIA_ROOT = BASE_DIR / 'resources/media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -141,3 +142,5 @@ from core.packages.swagger import *
 from core.packages.rest_framework import *
 from core.packages.simlejwt import *
 from core.packages.cors_headers import *
+
+from core.conf.logs import LOGGING
