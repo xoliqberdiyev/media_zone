@@ -7,6 +7,8 @@ from apps.shared.regex import phone_regex
 class Room(BaseModel):
     name = models.CharField(max_length=150)
     monthly_income = models.PositiveBigIntegerField(default=0)
+    room_price_per_hour = models.PositiveBigIntegerField(default=0)
+    image = models.ImageField(upload_to="media/rooms/", null=True, blank=True)
 
     def __str__(self):
         return self.name
