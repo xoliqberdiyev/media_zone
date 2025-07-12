@@ -1,3 +1,5 @@
+from django.conf import settings
+
 SWAGGER_SETTINGS = {
    'SECURITY_DEFINITIONS': {
       'Bearer': {
@@ -7,5 +9,5 @@ SWAGGER_SETTINGS = {
       }
    }
 }
-
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+if settings.DEBUG == False:
+   SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

@@ -39,7 +39,7 @@ class RoomOrder(BaseModel):
     
     def save(self, *args, **kwargs):
         now = timezone.now()
-        total = self.objects.filter(
+        total = RoomOrder.objects.filter(
             room=self.room,
             date__month=now.month,
             date__year=now.year
