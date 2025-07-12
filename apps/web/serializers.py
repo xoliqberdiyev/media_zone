@@ -52,3 +52,11 @@ class ImageListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'image'
         ]
+
+    
+class RoomOrderWebSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RoomOrder
+        fields = [
+            'full_name', 'phone', ''
+        ]

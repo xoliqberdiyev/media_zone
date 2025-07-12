@@ -8,5 +8,3 @@ class Partner(BaseModel):
 
 class Image(BaseModel):
     image = models.ImageField(upload_to='images')
-
-
