@@ -9,7 +9,7 @@ class RoomListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         fields = [
-            'id', 'name', 'monthly_income'
+            'id', 'name_uz', 'name_ru', 'monthly_income'
         ]
 
 
