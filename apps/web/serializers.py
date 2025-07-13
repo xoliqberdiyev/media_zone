@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.rooms.models import Room, RoomOrder, RoomImage
-from apps.web.models import Image, Partner
+from apps.web.models import Image, Partner, Video
 
 
 class ListRoomImagesSerializer(serializers.ModelSerializer):
@@ -59,4 +59,12 @@ class RoomOrderWebSerializer(serializers.ModelSerializer):
         model = RoomOrder
         fields = [
             'full_name', 'phone', 'date', 'start_time', 'end_time', 'price', 'description', 'room'
+        ]
+
+    
+class VideoListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Video
+        fields = [
+            'id', 'video'
         ]

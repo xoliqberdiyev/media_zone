@@ -8,3 +8,7 @@ class Partner(BaseModel):
 
 class Image(BaseModel):
     image = models.ImageField(upload_to='images')
+
+class Video(BaseModel):
+    video = models.FileField(upload_to="videos")
+
