@@ -9,6 +9,7 @@ class Room(BaseModel):
     monthly_income = models.PositiveBigIntegerField(default=0)
     room_price_per_hour = models.PositiveBigIntegerField(default=0)
     image = models.ImageField(upload_to="media/rooms/", null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name

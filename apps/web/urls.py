@@ -8,4 +8,6 @@ urlpatterns = [
 
     path('partners/', views.PartnerListApiView.as_view()),
     path('images/', views.PartnerListApiView.as_view()),
+
+    path('rooms/order/create/', views.RoomOrderCreateApiView.as_view()),
 ]

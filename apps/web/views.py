@@ -24,3 +24,7 @@ class ImageListApiView(generics.ListAPIView):
     queryset = models.Image.objects.all()
     serializer_class = serializers.ImageListSerializer
     
+
+class RoomOrderCreateApiView(generics.CreateAPIView):
+    serializer_class = serializers.RoomOrderWebSerializer
+    queryset = room_models.RoomOrder.objects.all()
