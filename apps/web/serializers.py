@@ -16,7 +16,7 @@ class RoomWebListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         fields = [
-            'id', 'name', 'image', 'description', 'room_price_per_hour'
+            'id', 'name_uz', 'name_ru', 'image', 'description_uz', 'description_ru', 'room_price_per_hour'
         ]
 
 
@@ -33,7 +33,7 @@ class RoomWebDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
         fields = [
-            'id', 'name', 'image', 'description', 'room_price_per_hour', 'room_images', 'room_orders'
+            'id', 'name_uz', 'name_ru', 'image', 'description_uz', 'description_ru', 'room_price_per_hour', 'room_images', 'room_orders'
         ]
 
     

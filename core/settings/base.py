@@ -37,6 +37,7 @@ THIRD_PARTY_PACKAGES = [
 # Application definition
 INSTALLED_APPS = [
     'jazzmin',
+    'modeltranslation',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -144,3 +145,9 @@ from core.packages.simlejwt import *
 from core.packages.cors_headers import *
 
 from core.conf.logs import LOGGING
+
+LANGUAGES = (
+    ('uz', 'Uzbek'),
+    ('ru', 'Russian'),
+)
+MODELTRANSLATION_LANGUAGES = ('ru', 'uz')
