@@ -9,6 +9,7 @@ urlpatterns = [
     path('partners/', views.PartnerListApiView.as_view()),
     path('images/', views.ImageListApiView.as_view()),
     path('videos/', views.VideoListApiView.as_view()),
+    path('team/', views.TeamListApiView.as_view()),
 
     path('rooms/order/create/', views.RoomOrderCreateApiView.as_view()),
 ]

@@ -12,3 +12,8 @@ class Image(BaseModel):
 class Video(BaseModel):
     video = models.FileField(upload_to="videos")
 
+
+class Team(BaseModel):
+    name = models.CharField(max_length=250)
+    image = models.ImageField(upload_to="teams")
+

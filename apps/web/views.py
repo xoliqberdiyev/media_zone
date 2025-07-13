@@ -30,6 +30,11 @@ class VideoListApiView(generics.ListAPIView):
     serializer_class = serializers.VideoListSerializer
     
 
+class TeamListApiView(generics.ListAPIView):
+    queryset = models.Team.objects.only('id', 'name', 'image')
+    serializer_class = serializers.TeamSerializer
+    
+
 class RoomOrderCreateApiView(generics.CreateAPIView):
     serializer_class = serializers.RoomOrderWebSerializer
     queryset = room_models.RoomOrder.objects.all()
