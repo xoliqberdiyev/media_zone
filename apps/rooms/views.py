@@ -25,4 +25,4 @@ class RoomOrderListSerializer(generics.ListAPIView):
 
     def get_queryset(self):
         room = get_object_or_404(models.Room, id=self.kwargs.get('room_id'))
-        return models.RoomOrder.objects.filter(room=room)
+        return models.RoomOrder.objects.filter(room=room).order_by('start_time')

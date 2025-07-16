@@ -32,8 +32,10 @@ class IncomeStatistsApiView(views.APIView):
         queryset = Income.objects.all()
 
         prediot = request.query_params.get('filter', 'current_year')
+        if prediot == 'last_day':
+            queryset = queryset.filter(date=now.date())
 
-        if prediot == 'last_week':
+        elif prediot == 'last_week':
             queryset = queryset.filter(date__gte=now - timedelta(days=7), date__lte=now)
 
         elif prediot == 'last_month':
