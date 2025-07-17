@@ -5,6 +5,7 @@ from apps.shared.models import BaseModel
 
 class Partner(BaseModel):
     icon = models.FileField(upload_to='partners')
+    instagram_link = models.URLField(null=True, blank=True)
 
 class Image(BaseModel):
     image = models.ImageField(upload_to='images')

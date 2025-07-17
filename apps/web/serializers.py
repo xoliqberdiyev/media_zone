@@ -41,7 +41,7 @@ class PartnerListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Partner 
         fields = [
-            'id', 'icon'
+            'id', 'icon', 'instagram_link'
         ]
 
 
