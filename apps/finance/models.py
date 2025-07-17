@@ -23,7 +23,7 @@ class Income(BaseModel):
     category = models.ForeignKey(IncomeCategory, on_delete=models.CASCADE, related_name='incomes')
     price = models.PositiveBigIntegerField()
     date = models.DateField()
-    comment = models.TextField()
+    comment = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.price} - {self.date} income'
@@ -38,7 +38,7 @@ class Expence(BaseModel):
     category = models.ForeignKey(ExpenceCategory, on_delete=models.CASCADE, related_name='expences')
     price = models.PositiveBigIntegerField()
     date = models.DateField()
-    comment = models.TextField()
+    comment = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f'{self.price} - {self.date} expence'
