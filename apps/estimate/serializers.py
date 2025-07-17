@@ -9,6 +9,7 @@ class EstimateIncomeCreateSerializer(serializers.Serializer):
     reason = serializers.CharField()
     date = serializers.DateField()
     description = serializers.CharField()
+    price = serializers.IntegerField()
 
     def create(self, validated_data):
         with transaction.atomic():
@@ -17,6 +18,7 @@ class EstimateIncomeCreateSerializer(serializers.Serializer):
                 reason=validated_data.get('reason'),
                 date=validated_data.get('date'),
                 description=validated_data.get('description'),
+                price=validated_data.get('price')
             )
             return estimate
         
@@ -26,6 +28,7 @@ class EstimateExpenceCreateSerializer(serializers.Serializer):
     reason = serializers.CharField()
     date = serializers.DateField()
     description = serializers.CharField()
+    price = serializers.IntegerField()
 
     def create(self, validated_data):
         with transaction.atomic():
@@ -34,6 +37,7 @@ class EstimateExpenceCreateSerializer(serializers.Serializer):
                 reason=validated_data.get('reason'),
                 date=validated_data.get('date'),
                 description=validated_data.get('description'),
+                price=validated_data.get('price')
             )
             return estimate
         
@@ -42,5 +46,5 @@ class EstimateListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Estimate
         fields = [
-            'id', 'reason', 'date', 'description', 'type'
+            'id', 'reason', 'date', 'description', 'type', 'price'
         ]

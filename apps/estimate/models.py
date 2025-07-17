@@ -13,6 +13,7 @@ class Estimate(BaseModel):
     reason = models.CharField(max_length=250)
     date = models.DateField()
     description = models.TextField()
+    price = models.PositiveBigIntegerField(default=0)
 
     def __str__(self):
         return self.reason
