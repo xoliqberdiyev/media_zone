@@ -8,6 +8,7 @@ CORS_ALLOWED_ORIGINS = [
     'https://media-zone-web.vercel.app',
     'https://crm.mediazonestudio.uz',
     'https://mediazonestudio.uz',
+    'https://www.mediazonestudio.uz'
 ]
 
 CSRF_TRUSTED_ORIGINS = [
