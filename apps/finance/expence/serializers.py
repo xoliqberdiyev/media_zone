@@ -17,7 +17,7 @@ class ExpenceCreateSerializer(serializers.Serializer):
     category_id = serializers.UUIDField()
     price = serializers.IntegerField()
     date = serializers.DateField()
-    comment = serializers.CharField()
+    comment = serializers.CharField(required=False)
 
     def validate(self, data):
         try:
