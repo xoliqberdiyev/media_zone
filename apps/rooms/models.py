@@ -32,7 +32,7 @@ class RoomOrder(BaseModel):
     end_time = models.TimeField()
     price = models.PositiveBigIntegerField()
     full_name = models.CharField(max_length=150)
-    phone = models.CharField(max_length=15, validators=[phone_regex])
+    phone = models.CharField(max_length=15)
     description = models.TextField(null=True, blank=True)
 
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="room_orders")
