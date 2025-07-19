@@ -8,7 +8,7 @@ class Room(BaseModel):
     name = models.CharField(max_length=150)
     monthly_income = models.PositiveBigIntegerField(default=0)
     room_price_per_hour = models.PositiveBigIntegerField(default=0)
-    image = models.ImageField(upload_to="media/rooms/", null=True, blank=True)
+    image = models.ImageField(upload_to="media_zone/rooms/", null=True, blank=True)
     description = models.TextField(null=True, blank=True)
 
     def __str__(self):
@@ -54,7 +54,7 @@ class RoomOrder(BaseModel):
 
     
 class RoomImage(BaseModel):
-    image = models.ImageField(upload_to="media/room_images/")
+    image = models.ImageField(upload_to="media_zone/room_images/")
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="room_images")
 
     def __str__(self):

@@ -32,6 +32,7 @@ THIRD_PARTY_PACKAGES = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    'storages',
 ]
 
 # Application definition
@@ -128,8 +129,8 @@ USE_TZ = False
 STATIC_URL = 'resources/static/'
 STATIC_ROOT = BASE_DIR / 'resources/static'
 
-MEDIA_URL = 'resources/media/'
-MEDIA_ROOT = BASE_DIR / 'resources/media'
+MEDIA_URL = "https://1477816.servercore.cloud/"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -138,16 +139,29 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'authentication.User'
 
+DEFAULT_FILE_STORAGE="storages.backends.s3boto3.S3Boto3Storage"
+
+
 from core.packages.jazzmin import *
 from core.packages.swagger import *
 from core.packages.rest_framework import *
 from core.packages.simlejwt import *
 from core.packages.cors_headers import *
-
 from core.conf.logs import LOGGING
+# from core.packages.s3 import *
 
 LANGUAGES = (
     ('uz', 'Uzbek'),
     ('ru', 'Russian'),
 )
 MODELTRANSLATION_LANGUAGES = ('ru', 'uz')
+
+AWS_ACCESS_KEY_ID='ab13231c33604420851f3288a805703b'
+AWS_SECRET_ACCESS_KEY='342f429e1fb04f2e86959dc6c83b0c54'
+AWS_STORAGE_BUCKET_NAME='medias'
+AWS_S3_ENDPOINT_URL='https://s3.uz-2.srvstorage.uz'
+AWS_S3_REGION_NAME="uz-2"
+AWS_S3_FILE_OVERWRITE=False
+AWS_QUERYSTRING_AUTH=False
+AWS_DEFAULT_ACL="public-read"
+AWS_S3_CUSTOM_DOMAIN='8d030fad-5687-4157-adf9-d7d72d42d14a.srvstatic.uz'
