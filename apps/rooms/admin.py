@@ -10,6 +10,7 @@ class RoomImageInline(admin.TabularInline):
     extra = 0
 
 admin.site.register(RoomOrder)
+admin.site.register(RoomImage)
 
 @admin.register(Room)
 class RoomAdmin(TranslationAdmin):
