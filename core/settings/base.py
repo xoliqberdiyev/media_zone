@@ -2,17 +2,11 @@ from pathlib import Path
 import os, environ
 
 env = environ.Env()
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 env.read_env(os.path.join(BASE_DIR, '.env'))
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str("SECRET_KEY")
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG")
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
@@ -35,7 +29,6 @@ THIRD_PARTY_PACKAGES = [
     'storages',
 ]
 
-# Application definition
 INSTALLED_APPS = [
     'jazzmin',
     'modeltranslation',
@@ -83,8 +76,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
@@ -98,9 +89,6 @@ DATABASES = {
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -111,8 +99,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
 
 LANGUAGE_CODE = 'uz'
 
@@ -123,8 +109,6 @@ USE_I18N = True
 USE_TZ = False
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'resources/static/'
 STATIC_ROOT = BASE_DIR / 'resources/static'
@@ -132,8 +116,6 @@ STATIC_ROOT = BASE_DIR / 'resources/static'
 MEDIA_URL = "https://1477816.servercore.cloud/"
 
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -148,7 +130,6 @@ from core.packages.rest_framework import *
 from core.packages.simlejwt import *
 from core.packages.cors_headers import *
 from core.conf.logs import LOGGING
-# from core.packages.s3 import *
 
 LANGUAGES = (
     ('uz', 'Uzbek'),

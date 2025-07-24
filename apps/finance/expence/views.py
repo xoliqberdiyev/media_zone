@@ -33,29 +33,29 @@ class ExpenceStatistsApiView(views.APIView):
 
         prediot = request.query_params.get('filter', 'current_year')
         if prediot == 'last_day':
-            queryset = queryset.filter(date=now.date())
+            queryset = queryset.filter(created_at=now.date())
 
         elif prediot == 'last_week':
-            queryset = queryset.filter(date__gte=now - timedelta(days=7), date__lte=now)
+            queryset = queryset.filter(created_at__gte=now - timedelta(days=7), created_at__lte=now)
 
         elif prediot == 'last_month':
             if now.month == 1:
                 year = now.year - 1
             else:
                 month = now.month - 1
-            queryset = queryset.filter(date__year=year, date__month=month)
+            queryset = queryset.filter(created_at__year=year, created_at__month=month)
 
         elif prediot == 'last_year':
-            queryset = queryset.filter(date__year=now.year-1)
+            queryset = queryset.filter(created_at__year=now.year-1)
 
         elif prediot == "current_month":
-            queryset = queryset.filter(date__month=now.month)
+            queryset = queryset.filter(created_at__month=now.month)
 
         elif prediot == "current_year":
-            queryset = queryset.filter(date__year=now.year)
+            queryset = queryset.filter(created_at__year=now.year)
 
         elif prediot == "current_week":
-            queryset = queryset.filter(date__range=(now-timedelta(days=7), now))
+            queryset = queryset.filter(created_at__range=(now-timedelta(days=7), now))
 
         expence = queryset.aggregate(
             expence=Sum('price')
@@ -72,7 +72,7 @@ class ExpenceMonthlyStatisticsApiView(views.APIView):
     def get(self, request):
         data = (
             Expence.objects
-            .annotate(year=ExtractYear("date"), month=ExtractMonth('date'))
+            .annotate(year=ExtractYear("created_at"), month=ExtractMonth('created_at'))
             .values('year', 'month')
             .annotate(total=Sum('price'))
             .order_by('year', 'month')

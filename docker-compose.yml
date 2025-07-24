@@ -29,7 +29,7 @@ services:
       context: .
       dockerfile: ./docker/Dockerfile.web
     restart: always
-    command: sh scripts/entrypoint.sh
+    command: sh resources/scripts/entrypoint.sh
     volumes:
       - .:/code
       - pycache:/var/cache/pycache
