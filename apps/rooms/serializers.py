@@ -3,6 +3,8 @@ from django.db import transaction
 from rest_framework import serializers
 
 from apps.rooms.models import Room, RoomOrder
+from apps.client.models import Client
+from apps.finance.models import Income, IncomeCategory
 
 
 class RoomListSerializer(serializers.ModelSerializer):
@@ -42,6 +44,18 @@ class RoomOrderCreateSerializer(serializers.Serializer):
                 phone=validated_data.get('phone'),
                 description=validated_data.get('description'),
                 room=validated_data.get('room'),
+            )
+            Client.objects.get_or_create(
+                phone=room.phone,
+                name=room.full_name,
+                description=room.description,
+                status='new',
+            )
+            category, _ = IncomeCategory.objects.get_or_create(name='Mijozlar')
+            Income.objects.create(
+                category=category,
+                price=room.price,
+                date=room.date,
             )
             return room
     
