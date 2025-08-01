@@ -111,3 +111,11 @@ class IncomeDeleteApiView(views.APIView):
         income = get_object_or_404(Income, id=id)
         income.delete()
         return Response({"success": True, "message": "deleted!"}, status=204)
+    
+
+class IncomeUpdateApiView(generics.UpdateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'id'
+    serializer_class = serializers.IncomeUpdateSerializer
+    queryset = Income.objects.all()
+    

@@ -12,6 +12,7 @@ urlpatterns = [
             path('category/list/', views.ExpenceCategoryApiView.as_view()),
             path('category/<uuid:id>/expence/list/', views.ExpenceListApiView.as_view()),
             path('<uuid:id>/delete/', views.ExpenceDeleteApiView.as_view()),
+            path('<uuid:id>/update/', views.ExpenceUpdateApiView.as_view()),
         ]
     )),
     path('income/', include(
@@ -22,6 +23,7 @@ urlpatterns = [
             path('category/list/', income_views.IncomeCategoryApiView.as_view()),
             path('category/<uuid:id>/income/list/', income_views.IncomeListApiView.as_view()),
             path('<uuid:id>/delete/', income_views.IncomeDeleteApiView.as_view()),
+            path('<uuid:id>/update/', income_views.IncomeUpdateApiView.as_view()),
         ]
     ))
 ]

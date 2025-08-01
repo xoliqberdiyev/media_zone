@@ -39,3 +39,12 @@ class ExpenceListSerializer(serializers.ModelSerializer):
         model = Expence
         fields = '__all__'
         
+
+class ExpenceUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Expence
+        fields = [
+            'price', 'date', 'comment'
+        ]
+
+    

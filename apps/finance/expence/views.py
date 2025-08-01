@@ -111,3 +111,10 @@ class ExpenceDeleteApiView(views.APIView):
         expence = get_object_or_404(Expence, id=id)
         expence.delete()
         return Response({"success": True, "message": "deleted!"}, status=status.HTTP_204_NO_CONTENT)
+
+
+class ExpenceUpdateApiView(generics.UpdateAPIView):
+    serializer_class = serializers.ExpenceUpdateSerializer
+    queryset = Expence.objects.all()
+    lookup_field = 'id'
+    permission_classes = [permissions.IsAuthenticated]

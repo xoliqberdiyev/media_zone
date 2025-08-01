@@ -39,3 +39,10 @@ class IncomeListSerializer(serializers.ModelSerializer):
         model = Income
         fields = '__all__'
         
+
+class IncomeUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Income
+        fields = [
+            'price', 'date', 'comment'
+        ]
