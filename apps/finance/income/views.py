@@ -102,3 +102,12 @@ class IncomeListApiView(views.APIView):
         income = Income.objects.filter(category=income_category)
         serializer = serializers.IncomeListSerializer(income, many=True)
         return Response(serializer.data)
+    
+
+class IncomeDeleteApiView(views.APIView):
+    permission_classess = [permissions.IsAuthenticated]
+
+    def delete(self, request, id):
+        income = get_object_or_404(Income, id=id)
+        income.delete()
+        return Response({"success": True, "message": "deleted!"}, status=204)

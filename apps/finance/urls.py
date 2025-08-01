@@ -11,6 +11,7 @@ urlpatterns = [
             path('monthly-statistics/', views.ExpenceMonthlyStatisticsApiView.as_view(), name='expence_statistics_api'),
             path('category/list/', views.ExpenceCategoryApiView.as_view()),
             path('category/<uuid:id>/expence/list/', views.ExpenceListApiView.as_view()),
+            path('<uuid:id>/delete/', views.ExpenceDeleteApiView.as_view()),
         ]
     )),
     path('income/', include(
@@ -20,6 +21,7 @@ urlpatterns = [
             path('monthly-statistics/', income_views.IncomeMonthlyStatisticsApiView.as_view()),
             path('category/list/', income_views.IncomeCategoryApiView.as_view()),
             path('category/<uuid:id>/income/list/', income_views.IncomeListApiView.as_view()),
+            path('<uuid:id>/delete/', income_views.IncomeDeleteApiView.as_view()),
         ]
     ))
 ]

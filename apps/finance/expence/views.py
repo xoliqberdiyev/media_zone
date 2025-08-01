@@ -5,7 +5,7 @@ from django.db.models import Sum
 from django.db.models.functions import ExtractYear, ExtractMonth
 from django.shortcuts import get_object_or_404
 
-from rest_framework import generics, views, permissions
+from rest_framework import generics, views, permissions, status
 from rest_framework.response import Response
 
 from apps.finance.expence import serializers
@@ -102,3 +102,12 @@ class ExpenceListApiView(views.APIView):
         expence = Expence.objects.filter(category=expence_category)
         serializer = serializers.ExpenceListSerializer(expence, many=True)
         return Response(serializer.data)
+    
+
+class ExpenceDeleteApiView(views.APIView):
+    permission_classess = [permissions.IsAuthenticated]
+
+    def delete(self, request, id):
+        expence = get_object_or_404(Expence, id=id)
+        expence.delete()
+        return Response({"success": True, "message": "deleted!"}, status=status.HTTP_204_NO_CONTENT)
