@@ -5,4 +5,4 @@ from apps.shared.models import BaseModel
 
 
 class User(BaseModel, AbstractUser):
-    pass 
+    role = models.CharField(choices=[('admin', 'admin',), ('operator', 'operator')], max_length=20, default='operator')
