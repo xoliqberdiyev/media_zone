@@ -44,6 +44,7 @@ class RoomOrderCreateSerializer(serializers.Serializer):
                 phone=validated_data.get('phone'),
                 description=validated_data.get('description'),
                 room=validated_data.get('room'),
+                type='crm'
             )
             Client.objects.get_or_create(
                 phone=room.phone,
@@ -64,5 +65,5 @@ class RoomOrderListSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoomOrder
         fields = [
-            'id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description'
+            'id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type'
         ]

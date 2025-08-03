@@ -34,7 +34,7 @@ class RoomOrder(BaseModel):
     full_name = models.CharField(max_length=150)
     phone = models.CharField(max_length=15)
     description = models.TextField(null=True, blank=True)
-
+    type = models.CharField(choices=[('crm', 'crm'), ('web', 'web')], max_length=3, default='crm')
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="room_orders")
 
     def __str__(self):

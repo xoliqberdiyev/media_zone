@@ -1,7 +1,11 @@
+from django.db import transaction
+
 from rest_framework import serializers
 
 from apps.rooms.models import Room, RoomOrder, RoomImage
 from apps.web.models import Image, Partner, Video, Team
+from apps.client.models import Client
+from apps.finance.models import Income, IncomeCategory
 
 
 class ListRoomImagesSerializer(serializers.ModelSerializer):
@@ -61,7 +65,34 @@ class RoomOrderWebSerializer(serializers.ModelSerializer):
             'full_name', 'phone', 'date', 'start_time', 'end_time', 'price', 'description', 'room'
         ]
 
-    
+    def create(self, validated_data):
+        with transaction.atomic():
+            room = RoomOrder.objects.create(
+                date=validated_data.get('date'),
+                start_time=validated_data.get('start_time'),
+                end_time=validated_data.get('end_time'),
+                price=validated_data.get('price'),
+                full_name=validated_data.get('full_name'),
+                phone=validated_data.get('phone'),
+                description=validated_data.get('description'),
+                room=validated_data.get('room'),
+                type='web'
+            )
+            Client.objects.get_or_create(
+                phone=room.phone,
+                name=room.full_name,
+                description=room.description,
+                status='new',
+            )
+            category, _ = IncomeCategory.objects.get_or_create(name='Mijozlar')
+            Income.objects.create(
+                category=category,
+                price=room.price,
+                date=room.date,
+            )
+            return room
+
+
 class VideoListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Video
