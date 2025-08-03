@@ -27,6 +27,7 @@ THIRD_PARTY_PACKAGES = [
     'rest_framework_simplejwt',
     'corsheaders',
     'storages',
+    'django_filters',
 ]
 
 INSTALLED_APPS = [
