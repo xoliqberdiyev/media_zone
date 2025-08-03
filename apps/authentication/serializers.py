@@ -5,6 +5,20 @@ from rest_framework import serializers
 from apps.authentication import models
 
 
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+    def validate(self, data):
+        user = models.User.objects.filter(username=data['username']).first()
+        if not user:
+            raise serializers.ValidationError('User not found')
+        if not user.check_password(data['password']):
+            raise serializers.ValidationError('User not found')
+        data['user'] = user
+        return data
+
+
 class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.User

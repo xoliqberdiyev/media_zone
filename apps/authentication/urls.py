@@ -6,7 +6,7 @@ from apps.authentication import views
 
 
 urlpatterns = [
-    path('login/', TokenObtainPairView.as_view(), name='login_api'),
+    path('login/', views.LoginApiView.as_view(), name='login_api'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh_api'),
     path('user/create/', views.CreateUserApiView.as_view()),
     path('user/<uuid:id>/', views.UserApiView.as_view()),
