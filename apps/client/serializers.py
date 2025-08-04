@@ -4,12 +4,11 @@ from rest_framework import serializers
 
 from apps.client.models import Client, ClientComment
 
-
 class ClientCreateSerializer(serializers.Serializer):
     name = serializers.CharField()
     phone = serializers.CharField()
-    comment = serializers.CharField()
-    date = serializers.DateField()
+    comment = serializers.CharField(write_only=True)
+    date = serializers.DateField(write_only=True)
 
     def create(self, validated_data):
         with transaction.atomic():
@@ -18,7 +17,7 @@ class ClientCreateSerializer(serializers.Serializer):
                 name=validated_data.get('name'),
                 status='new',
             )
-            client_comment = ClientComment.objects.create(
+            ClientComment.objects.create(
                 client=client,
                 comment=validated_data.get('comment'),
                 date=validated_data.get('date')
