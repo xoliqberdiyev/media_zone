@@ -19,6 +19,7 @@ class ClientCreateSerializer(serializers.Serializer):
                 status='new',
             )
             client_comment = ClientComment.objects.create(
+                clinet=client,
                 comment=validated_data.get('comment'),
                 date=validated_data.get('date')
             )
