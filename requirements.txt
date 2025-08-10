@@ -12,3 +12,4 @@ pillow
 boto3
 django-storages
 django-modeltranslation
+django-filter

@@ -130,7 +130,7 @@ from core.packages.swagger import *
 from core.packages.rest_framework import *
 from core.packages.simlejwt import *
 from core.packages.cors_headers import *
-from core.conf.logs import LOGGING
+# from core.conf.logs import LOGGING
 
 LANGUAGES = (
     ('uz', 'Uzbek'),
