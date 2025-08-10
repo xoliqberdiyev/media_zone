@@ -31,3 +31,17 @@ class ClientListApiView(generics.ListAPIView):
     pagination_class = pagination.PageNumberPagination
     filter_backends = [DjangoFilterBackend]
     filterset_class = filter.ClientFilter
+
+
+class ClientDeleteApiView(generics.DestroyAPIView):
+    queryset = Client.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'id'
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.delete()
+            return Response({"message": "Client deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except Client.DoesNotExist:
+            return Response({"error": "Client not found"}, status=status.HTTP_404_NOT_FOUND)
