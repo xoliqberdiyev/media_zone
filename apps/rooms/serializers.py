@@ -58,7 +58,3 @@ class RoomOrderListSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoomOrder
         fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type']
-
-# Yangi serializer: Faqat umumiy pul
-class RoomIncomeStatisticsSerializer(serializers.Serializer):
-    total_income = serializers.IntegerField()
