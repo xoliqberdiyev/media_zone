@@ -59,8 +59,6 @@ class RoomOrderListSerializer(serializers.ModelSerializer):
         model = RoomOrder
         fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type']
 
-# Statistika uchun serializer
-class RoomStatisticsSerializer(serializers.Serializer):
+# Yangi serializer: Faqat umumiy pul
+class RoomIncomeStatisticsSerializer(serializers.Serializer):
     total_income = serializers.IntegerField()
-    total_hours_booked = serializers.IntegerField()
-    total_visitors = serializers.IntegerField()

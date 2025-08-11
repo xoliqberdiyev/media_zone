@@ -4,20 +4,17 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.rooms import serializers, models
 from apps.shared.pagination import CustomPageNumberPagination
-from django.db.models import Sum, Count
-
+from django.db.models import Sum
 
 class RoomListApiView(generics.ListAPIView):
     serializer_class = serializers.RoomListSerializer
     queryset = models.Room.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
-
 class RoomOrderCreateApiView(generics.CreateAPIView):
     serializer_class = serializers.RoomOrderCreateSerializer
     queryset = models.RoomOrder.objects.all()
     permission_classes = [permissions.IsAuthenticated]
-
 
 class RoomOrderListApiView(generics.ListAPIView):
     serializer_class = serializers.RoomOrderListSerializer
@@ -35,27 +32,18 @@ class RoomOrderListApiView(generics.ListAPIView):
             queryset = queryset.filter(date__range=[start_date, end_date])
         return queryset.order_by('start_time')
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
+# Yangi view: Faqat umumiy pul
+class RoomIncomeStatisticsApiView(generics.GenericAPIView):
+    serializer_class = serializers.RoomIncomeStatisticsSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-        # Statistika hisoblash
+    def get(self, request, room_id):
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        if not (start_date and end_date):
+            return Response({"error": "start_date va end_date kerak (YYYY-MM-DD)"}, status=400)
+
+        queryset = models.RoomOrder.objects.filter(room_id=room_id, date__range=[start_date, end_date])
         total_income = queryset.aggregate(Sum('price'))['price__sum'] or 0
-        total_visitors = queryset.count()  # Har bir RoomOrder = 1 tashrif buyuruvchi
-        total_hours = 0
-        for order in queryset:
-            start = order.start_time
-            end = order.end_time
-            hours = (end.hour * 60 + end.minute - start.hour * 60 - start.minute) / 60
-            total_hours += max(hours, 0)
 
-        stats = {
-            'total_income': total_income,
-            'total_hours_booked': int(total_hours),
-            'total_visitors': total_visitors
-        }
-
-        return Response({
-            'orders': serializer.data,
-            'statistics': stats
-        })
+        return Response({"total_income": total_income})
