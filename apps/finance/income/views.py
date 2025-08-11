@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from django.utils import timezone
 from django.db.models import Sum
 from django.db.models.functions import ExtractYear, ExtractMonth
@@ -8,13 +8,8 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.finance.models import Income, IncomeCategory
 from apps.finance.income import serializers
-from datetime import datetime
-from rest_framework import views, permissions
-from rest_framework.response import Response
-from apps.finance.models import Income
-from apps.finance.income.serializers import IncomeStatisticsSerializer
-from django.db.models import Sum
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 class IncomeCreateApiView(generics.CreateAPIView):
     queryset = Income.objects.all()
@@ -28,14 +23,14 @@ class IncomeCategoryApiView(generics.ListAPIView):
 
 class IncomeStatistsApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = IncomeStatisticsSerializer
+    serializer_class = serializers.IncomeStatisticsSerializer
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(name='start_date', description='Boshlanish sanasi (DD:MM:YYYY)', required=True, type=str),
-            OpenApiParameter(name='end_date', description='Tugash sanasi (DD:MM:YYYY)', required=True, type=str),
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter('start_date', openapi.IN_QUERY, description="Boshlanish sanasi (DD:MM:YYYY)", type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('end_date', openapi.IN_QUERY, description="Tugash sanasi (DD:MM:YYYY)", type=openapi.TYPE_STRING, required=True),
         ],
-        responses={200: IncomeStatisticsSerializer}
+        responses={200: serializers.IncomeStatisticsSerializer}
     )
     def get(self, request):
         start_date = request.query_params.get('start_date')

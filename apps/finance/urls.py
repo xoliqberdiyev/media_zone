@@ -1,17 +1,17 @@
 from django.urls import path, include 
-from apps.finance.expence import views
 from apps.finance.income import views as income_views
+from apps.finance.expence import views as expence_views
 
 urlpatterns = [
     path('expence/', include(
         [
-            path('create/', views.ExpenceCreateApiView.as_view(), name='expence_create_api'),
-            path('statistics/', views.ExpenceStatistsApiView.as_view(), name='expence_statistics_api'),  # Xato tuzatildi
-            path('monthly-statistics/', views.ExpenceMonthlyStatisticsApiView.as_view(), name='expence_monthly_statistics_api'),
-            path('category/list/', views.ExpenceCategoryApiView.as_view(), name='expence_category_list'),
-            path('category/<uuid:id>/expence/list/', views.ExpenceListApiView.as_view(), name='expence_list'),
-            path('<uuid:id>/delete/', views.ExpenceDeleteApiView.as_view(), name='expence_delete'),
-            path('<uuid:id>/update/', views.ExpenceUpdateApiView.as_view(), name='expence_update'),
+            path('create/', expence_views.ExpenceCreateApiView.as_view(), name='expence_create_api'),
+            path('statistics/', expence_views.ExpenceStatistsApiView.as_view(), name='expence_statistics_api'),
+            path('monthly-statistics/', expence_views.ExpenceMonthlyStatisticsApiView.as_view(), name='expence_monthly_statistics_api'),
+            path('category/list/', expence_views.ExpenceCategoryApiView.as_view(), name='expence_category_list'),
+            path('category/<uuid:id>/expence/list/', expence_views.ExpenceListApiView.as_view(), name='expence_list'),
+            path('<uuid:id>/delete/', expence_views.ExpenceDeleteApiView.as_view(), name='expence_delete'),
+            path('<uuid:id>/update/', expence_views.ExpenceUpdateApiView.as_view(), name='expence_update'),
         ]
     )),
     path('income/', include(
