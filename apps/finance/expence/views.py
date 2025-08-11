@@ -12,6 +12,8 @@ from apps.finance.expence.serializers import ExpenceStatisticsSerializer
 from django.db.models import Sum
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django_filters import rest_framework as filters
+from apps.finance.models import Expence
 
 class ExpenceCreateApiView(generics.CreateAPIView):
     queryset = Expence.objects.all()
@@ -106,3 +108,11 @@ class ExpenceUpdateApiView(generics.UpdateAPIView):
     queryset = Expence.objects.all()
     lookup_field = 'id'
     permission_classes = [permissions.IsAuthenticated]
+
+class ExpenceFilter(filters.FilterSet):
+    start_date = filters.DateFilter(field_name='date', lookup_expr='gte')
+    end_date = filters.DateFilter(field_name='date', lookup_expr='lte')
+
+    class Meta:
+        model = Expence
+        fields = ['start_date', 'end_date']
