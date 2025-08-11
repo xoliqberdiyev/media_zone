@@ -1,8 +1,8 @@
 from django.utils import timezone
 from django.db import models
-
 from apps.shared.models import BaseModel
 from apps.shared.regex import phone_regex
+
 
 class Room(BaseModel):
     name = models.CharField(max_length=150)
@@ -13,7 +13,7 @@ class Room(BaseModel):
 
     def __str__(self):
         return self.name
-    
+
     def save(self, *args, **kwargs):
         now = timezone.now()
         total = RoomOrder.objects.filter(
@@ -30,7 +30,7 @@ class RoomOrder(BaseModel):
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
-    price = models.PositiveBigIntegerField()
+    price = models.PositiveBigIntegerField(null=True, blank=True)  # Null qabul qiladi
     full_name = models.CharField(max_length=150)
     phone = models.CharField(max_length=15)
     description = models.TextField(null=True, blank=True)
@@ -39,7 +39,7 @@ class RoomOrder(BaseModel):
 
     def __str__(self):
         return self.full_name
-    
+
     def save(self, *args, **kwargs):
         now = timezone.now()
         total = RoomOrder.objects.filter(
@@ -52,7 +52,7 @@ class RoomOrder(BaseModel):
         self.room.save()
         super().save(*args, **kwargs)
 
-    
+
 class RoomImage(BaseModel):
     image = models.ImageField(upload_to="media_zone/room_images/")
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="room_images")

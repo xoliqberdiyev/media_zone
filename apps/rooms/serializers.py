@@ -1,19 +1,13 @@
 from django.db import transaction
-
 from rest_framework import serializers
-
 from apps.rooms.models import Room, RoomOrder
 from apps.client.models import Client
 from apps.finance.models import Income, IncomeCategory
 
-
 class RoomListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
-        fields = [
-            'id', 'name_uz', 'name_ru', 'monthly_income'
-        ]
-
+        fields = ['id', 'name_uz', 'name_ru', 'monthly_income']
 
 class RoomOrderCreateSerializer(serializers.Serializer):
     date = serializers.DateField()
@@ -59,11 +53,14 @@ class RoomOrderCreateSerializer(serializers.Serializer):
                 date=room.date,
             )
             return room
-    
 
 class RoomOrderListSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoomOrder
-        fields = [
-            'id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type'
-        ]
+        fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type']
+
+# Statistika uchun serializer
+class RoomStatisticsSerializer(serializers.Serializer):
+    total_income = serializers.IntegerField()
+    total_hours_booked = serializers.IntegerField()
+    total_visitors = serializers.IntegerField()
