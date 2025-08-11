@@ -1,13 +1,15 @@
-from datetime import datetime, timedelta
-from django.utils import timezone
-from django.db.models import Sum
 from django.db.models.functions import ExtractYear, ExtractMonth
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, views, permissions, status
-from rest_framework.response import Response
+from rest_framework import generics, status
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.finance.models import Expence, ExpenceCategory
 from apps.finance.expence import serializers
+from datetime import datetime
+from rest_framework import views, permissions
+from rest_framework.response import Response
+from apps.finance.models import Expence
+from apps.finance.expence.serializers import ExpenceStatisticsSerializer
+from django.db.models import Sum
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -23,26 +25,26 @@ class ExpenceCategoryApiView(generics.ListAPIView):
 
 class ExpenceStatistsApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.ExpenceStatisticsSerializer
+    serializer_class = ExpenceStatisticsSerializer
 
     @swagger_auto_schema(
         manual_parameters=[
-            openapi.Parameter('start_date', openapi.IN_QUERY, description="Boshlanish sanasi (DD:MM:YYYY)", type=openapi.TYPE_STRING, required=True),
-            openapi.Parameter('end_date', openapi.IN_QUERY, description="Tugash sanasi (DD:MM:YYYY)", type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('start_date', openapi.IN_QUERY, description="Boshlanish sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('end_date', openapi.IN_QUERY, description="Tugash sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=True),
         ],
-        responses={200: serializers.ExpenceStatisticsSerializer}
+        responses={200: ExpenceStatisticsSerializer}
     )
     def get(self, request):
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
         if not (start_date and end_date):
-            return Response({"error": "start_date va end_date kerak (DD:MM:YYYY)"}, status=400)
+            return Response({"error": "start_date va end_date kerak (YYYY-MM-DD)"}, status=400)
 
         try:
-            start_date = datetime.strptime(start_date, '%d:%m:%Y').date()
-            end_date = datetime.strptime(end_date, '%d:%m:%Y').date()
+            start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
         except ValueError:
-            return Response({"error": "Sana formati noto‘g‘ri (DD:MM:YYYY)"}, status=400)
+            return Response({"error": "Sana formati noto‘g‘ri (YYYY-MM-DD)"}, status=400)
 
         queryset = Expence.objects.filter(date__range=[start_date, end_date])
         total_expence = queryset.aggregate(Sum('price'))['price__sum'] or 0
