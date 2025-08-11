@@ -18,7 +18,6 @@ class RoomOrderCreateApiView(generics.CreateAPIView):
     queryset = models.RoomOrder.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
-
 class RoomOrderListApiView(generics.ListAPIView):
     serializer_class = serializers.RoomOrderListSerializer
     permission_classes = [permissions.IsAuthenticated]

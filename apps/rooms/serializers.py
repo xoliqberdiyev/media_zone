@@ -13,7 +13,7 @@ class RoomOrderCreateSerializer(serializers.Serializer):
     date = serializers.DateField()
     start_time = serializers.TimeField()
     end_time = serializers.TimeField()
-    price = serializers.IntegerField()
+    price = serializers.IntegerField(required=False, allow_null=True)  # price ixtiyoriy
     full_name = serializers.CharField()
     phone = serializers.CharField()
     description = serializers.CharField()
@@ -33,7 +33,7 @@ class RoomOrderCreateSerializer(serializers.Serializer):
                 date=validated_data.get('date'),
                 start_time=validated_data.get('start_time'),
                 end_time=validated_data.get('end_time'),
-                price=validated_data.get('price'),
+                price=validated_data.get('price'),  # None bo‘lishi mumkin
                 full_name=validated_data.get('full_name'),
                 phone=validated_data.get('phone'),
                 description=validated_data.get('description'),
@@ -47,11 +47,13 @@ class RoomOrderCreateSerializer(serializers.Serializer):
                 status='new',
             )
             category, _ = IncomeCategory.objects.get_or_create(name='Mijozlar')
-            Income.objects.create(
-                category=category,
-                price=room.price,
-                date=room.date,
-            )
+            # price None bo‘lmasa, Income yaratamiz
+            if room.price is not None:
+                Income.objects.create(
+                    category=category,
+                    price=room.price,
+                    date=room.date,
+                )
             return room
 
 class RoomOrderListSerializer(serializers.ModelSerializer):
