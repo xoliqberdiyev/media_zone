@@ -1,17 +1,11 @@
 from django.db import transaction
-
-from rest_framework import serializers 
-
+from rest_framework import serializers
 from apps.finance.models import Income, IncomeCategory
-
 
 class IncomeCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = IncomeCategory
-        fields = [
-            'id', 'name', 'total_price'
-        ]
-
+        fields = ['id', 'name', 'total_price']
 
 class IncomeCreateSerializer(serializers.Serializer):
     category_id = serializers.UUIDField()
@@ -25,24 +19,25 @@ class IncomeCreateSerializer(serializers.Serializer):
         except IncomeCategory.DoesNotExist:
             raise serializers.ValidationError("category not found")
         data['category'] = category
-        return data 
-    
+        return data
+
     def create(self, validated_data):
         with transaction.atomic():
-            expence = Income.objects.create(**validated_data)
-            return expence
+            income = Income.objects.create(**validated_data)
+            return income
         return None
 
-
 class IncomeListSerializer(serializers.ModelSerializer):
+    category = serializers.StringRelatedField()
+
     class Meta:
         model = Income
-        fields = '__all__'
-        
+        fields = ['id', 'category', 'price', 'date', 'comment', 'created_at']
 
 class IncomeUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Income
-        fields = [
-            'price', 'date', 'comment'
-        ]
+        fields = ['price', 'date', 'comment']
+
+class IncomeStatisticsSerializer(serializers.Serializer):
+    total_income = serializers.IntegerField()

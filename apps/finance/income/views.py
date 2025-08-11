@@ -1,70 +1,38 @@
 from datetime import timedelta
-
 from django.utils import timezone
 from django.db.models import Sum
 from django.db.models.functions import ExtractYear, ExtractMonth
 from django.shortcuts import get_object_or_404
-
 from rest_framework import generics, views, permissions
 from rest_framework.response import Response
-
-from apps.finance.income import serializers
+from django_filters.rest_framework import DjangoFilterBackend
 from apps.finance.models import Income, IncomeCategory
-
+from apps.finance.income import serializers
 
 class IncomeCreateApiView(generics.CreateAPIView):
     queryset = Income.objects.all()
     serializer_class = serializers.IncomeCreateSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-
 class IncomeCategoryApiView(generics.ListAPIView):
     serializer_class = serializers.IncomeCategorySerializer
     queryset = IncomeCategory.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
-
 class IncomeStatistsApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.IncomeStatisticsSerializer
 
     def get(self, request):
-        now = timezone.now()
-        queryset = Income.objects.all()
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        if not (start_date and end_date):
+            return Response({"error": "start_date va end_date kerak (YYYY-MM-DD)"}, status=400)
 
-        prediot = request.query_params.get('filter', 'current_year')
-        if prediot == 'last_day':
-            queryset = queryset.filter(created_at=now.date())
+        queryset = Income.objects.filter(date__range=[start_date, end_date])
+        total_income = queryset.aggregate(Sum('price'))['price__sum'] or 0
 
-        elif prediot == 'last_week':
-            queryset = queryset.filter(created_at__gte=now - timedelta(days=7), created_at__lte=now)
-
-        elif prediot == 'last_month':
-            if now.month == 1:
-                year = now.year - 1
-            else:
-                month = now.month - 1
-            queryset = queryset.filter(created_at__year=year, created_at__month=month)
-
-        elif prediot == 'last_year':
-            queryset = queryset.filter(created_at__year=now.year-1)
-
-        elif prediot == "current_month":
-            queryset = queryset.filter(created_at__month=now.month)
-
-        elif prediot == "current_year":
-            queryset = queryset.filter(created_at__year=now.year)
-
-        elif prediot == "current_week":
-            queryset = queryset.filter(created_at__range=(now-timedelta(days=7), now))
-
-        expence = queryset.aggregate(
-            expence=Sum('price')
-        )['expence']      
-
-        return Response(
-            {"expence": expence, "date_range": prediot}
-        )  
-
+        return Response({"total_income": total_income})
 
 class IncomeMonthlyStatisticsApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -79,43 +47,45 @@ class IncomeMonthlyStatisticsApiView(views.APIView):
         )
 
         result = {}
-
         for item in data:
-            print(item)
-            year = item['year'] # 2025
-            month = item['month'] # 01
-            total = item['total'] # 1212
+            year = item['year']
+            month = item['month']
+            total = item['total']
+            if year not in result:
+                result[year] = {i: 0 for i in range(1, 13)}
+            result[year][month] = total
 
-            if year not in result: # 2025 yoq bosa
-                result[year] = {i: 0 for i in range(1,13)} # 2025: [1,2,3,4,5,6,7,8,9,10,11,12]
-
-            result[year][month] = total # 2025: [1: 1000, 2: 1223]
-        
         return Response(result)
 
-
-class IncomeListApiView(views.APIView):
+class IncomeListApiView(generics.ListAPIView):
+    serializer_class = serializers.IncomeListSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['date']
 
-    def get(self, request, id):
-        income_category = get_object_or_404(IncomeCategory, id=id)
-        income = Income.objects.filter(category=income_category)
-        serializer = serializers.IncomeListSerializer(income, many=True)
-        return Response(serializer.data)
-    
+    def get_queryset(self):
+        queryset = Income.objects.all()
+        category_id = self.kwargs.get('id')
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+
+        if category_id:
+            queryset = queryset.filter(category__id=category_id)
+        if start_date and end_date:
+            queryset = queryset.filter(date__range=[start_date, end_date])
+
+        return queryset.order_by('-date')
 
 class IncomeDeleteApiView(views.APIView):
-    permission_classess = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def delete(self, request, id):
         income = get_object_or_404(Income, id=id)
         income.delete()
         return Response({"success": True, "message": "deleted!"}, status=204)
-    
 
 class IncomeUpdateApiView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'id'
     serializer_class = serializers.IncomeUpdateSerializer
     queryset = Income.objects.all()
-    
