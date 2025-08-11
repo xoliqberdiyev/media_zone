@@ -8,6 +8,13 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.finance.models import Income, IncomeCategory
 from apps.finance.income import serializers
+from datetime import datetime
+from rest_framework import views, permissions
+from rest_framework.response import Response
+from apps.finance.models import Income
+from apps.finance.income.serializers import IncomeStatisticsSerializer
+from django.db.models import Sum
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 class IncomeCreateApiView(generics.CreateAPIView):
     queryset = Income.objects.all()
@@ -21,13 +28,26 @@ class IncomeCategoryApiView(generics.ListAPIView):
 
 class IncomeStatistsApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.IncomeStatisticsSerializer
+    serializer_class = IncomeStatisticsSerializer
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='start_date', description='Boshlanish sanasi (DD:MM:YYYY)', required=True, type=str),
+            OpenApiParameter(name='end_date', description='Tugash sanasi (DD:MM:YYYY)', required=True, type=str),
+        ],
+        responses={200: IncomeStatisticsSerializer}
+    )
     def get(self, request):
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
         if not (start_date and end_date):
-            return Response({"error": "start_date va end_date kerak (YYYY-MM-DD)"}, status=400)
+            return Response({"error": "start_date va end_date kerak (DD:MM:YYYY)"}, status=400)
+
+        try:
+            start_date = datetime.strptime(start_date, '%d:%m:%Y').date()
+            end_date = datetime.strptime(end_date, '%d:%m:%Y').date()
+        except ValueError:
+            return Response({"error": "Sana formati noto‘g‘ri (DD:MM:YYYY)"}, status=400)
 
         queryset = Income.objects.filter(date__range=[start_date, end_date])
         total_income = queryset.aggregate(Sum('price'))['price__sum'] or 0

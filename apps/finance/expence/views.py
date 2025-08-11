@@ -8,6 +8,13 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.finance.models import Expence, ExpenceCategory
 from apps.finance.expence import serializers
+from datetime import datetime
+from rest_framework import views, permissions
+from rest_framework.response import Response
+from apps.finance.models import Expence
+from apps.finance.expence.serializers import ExpenceStatisticsSerializer
+from django.db.models import Sum
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 class ExpenceCreateApiView(generics.CreateAPIView):
     queryset = Expence.objects.all()
@@ -21,13 +28,26 @@ class ExpenceCategoryApiView(generics.ListAPIView):
 
 class ExpenceStatistsApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.ExpenceStatisticsSerializer
+    serializer_class = ExpenceStatisticsSerializer
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='start_date', description='Boshlanish sanasi (DD:MM:YYYY)', required=True, type=str),
+            OpenApiParameter(name='end_date', description='Tugash sanasi (DD:MM:YYYY)', required=True, type=str),
+        ],
+        responses={200: ExpenceStatisticsSerializer}
+    )
     def get(self, request):
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
         if not (start_date and end_date):
-            return Response({"error": "start_date va end_date kerak (YYYY-MM-DD)"}, status=400)
+            return Response({"error": "start_date va end_date kerak (DD:MM:YYYY)"}, status=400)
+
+        try:
+            start_date = datetime.strptime(start_date, '%d:%m:%Y').date()
+            end_date = datetime.strptime(end_date, '%d:%m:%Y').date()
+        except ValueError:
+            return Response({"error": "Sana formati noto‘g‘ri (DD:MM:YYYY)"}, status=400)
 
         queryset = Expence.objects.filter(date__range=[start_date, end_date])
         total_expence = queryset.aggregate(Sum('price'))['price__sum'] or 0
