@@ -10,6 +10,11 @@ class ClientCreateSerializer(serializers.Serializer):
     comment = serializers.CharField(write_only=True)
     date = serializers.DateField(write_only=True)
 
+    def validate_phone(self, value):
+        if Client.objects.filter(phone=value).exists():
+            raise serializers.ValidationError("Client with this phone number already exists")
+        return value
+
     def create(self, validated_data):
         with transaction.atomic():
             client = Client.objects.create(
