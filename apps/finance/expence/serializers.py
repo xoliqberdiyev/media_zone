@@ -25,7 +25,6 @@ class ExpenceCreateSerializer(serializers.Serializer):
         with transaction.atomic():
             expence = Expence.objects.create(**validated_data)
             return expence
-        return None
 
 class ExpenceListSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField()
