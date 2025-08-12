@@ -24,15 +24,16 @@ class ServiceOrderListApiView(generics.ListAPIView):
     filterset_fields = ['date']
 
     SERVICE_PRICES = {
-        "2b6a229a-618b-4fbd-8231-8a56a2898415": 99000,    # Classic service
-        "91cc328f-57d3-41d7-bac0-27cc0f269a46": 150000,   # Siklorama service
-        "4d302e7b-9b97-435d-a431-b772d537044b": 300000,   # Onix service
-        "d873017b-793c-4ec9-9764-a349afc94c8f": 99000     # Reels service
+        "2b6a229a-618b-4fbd-8231-8a56a2898415": 99000,
+        "91cc328f-57d3-41d7-bac0-27cc0f269a46": 150000,
+        "4d302e7b-9b97-435d-a431-b772d537044b": 300000,
+        "d873017b-793c-4ec9-9764-a349afc94c8f": 99000
     }
 
     def get_queryset(self):
-        service_id = self.kwargs.get('service_id')
-        queryset = models.ServiceOrder.objects.filter(service_id=service_id)
+        # MUAMMO HAL QILINDI: 'service_id' o'rniga 'services_id' dan foydalanildi
+        services_id = self.kwargs.get('services_id')
+        queryset = models.ServiceOrder.objects.filter(service_id=services_id)
         start_date = self.request.query_params.get('start_date')
         end_date = self.request.query_params.get('end_date')
         if start_date and end_date:
@@ -55,8 +56,9 @@ class ServiceOrderListApiView(generics.ListAPIView):
             hours = (end.hour * 60 + end.minute - start.hour * 60 - start.minute) / 60
             total_hours += max(hours, 0)
 
-        service_id = self.kwargs.get('service_id')
-        service_price = self.SERVICE_PRICES.get(str(service_id))
+        # MUAMMO HAL QILINDI: 'service_id' o'rniga 'services_id' dan foydalanildi
+        services_id = self.kwargs.get('services_id')
+        service_price = self.SERVICE_PRICES.get(str(services_id))
 
         return Response({
             'page': paginated_response.get('page', 1),
