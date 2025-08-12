@@ -66,3 +66,53 @@ class ServiceOrderListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceOrder
         fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type']
+
+class ServiceOrderUpdateSerializer(serializers.ModelSerializer):
+    date = serializers.DateField(required=False)
+    start_time = serializers.TimeField(required=False)
+    end_time = serializers.TimeField(required=False)
+    price = serializers.IntegerField(required=False, allow_null=True)
+    full_name = serializers.CharField(required=False)
+    phone = serializers.CharField(required=False)
+    description = serializers.CharField(required=False, allow_blank=True)
+    service_id = serializers.UUIDField(required=False)
+
+    class Meta:
+        model = ServiceOrder
+        fields = ['date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'service_id']
+
+    def validate(self, data):
+        if 'service_id' in data:
+            try:
+                service = Service.objects.get(id=data.get('service_id'))
+                data['service'] = service
+            except Service.DoesNotExist:
+                raise serializers.ValidationError("Service not found!")
+        return data
+
+    def update(self, instance, validated_data):
+        with transaction.atomic():
+            service = validated_data.pop('service', None)
+            if service:
+                instance.service = service
+            if 'description' in validated_data and validated_data['description']:
+                client, _ = Client.objects.get_or_create(
+                    phone=validated_data.get('phone', instance.phone),
+                    defaults={
+                        'name': validated_data.get('full_name', instance.full_name),
+                        'status': 'new'
+                    }
+                )
+                ClientComment.objects.create(
+                    client=client,
+                    date=validated_data.get('date', instance.date),
+                    comment=validated_data['description']
+                )
+            if 'price' in validated_data and validated_data['price'] is not None:
+                category, _ = IncomeCategory.objects.get_or_create(name='Mijozlar')
+                Income.objects.create(
+                    category=category,
+                    price=validated_data['price'],
+                    date=validated_data.get('date', instance.date),
+                )
+            return super().update(instance, validated_data)

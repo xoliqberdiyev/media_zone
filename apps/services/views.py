@@ -69,3 +69,26 @@ class ServiceOrderListApiView(generics.ListAPIView):
             'service_price': service_price,
             'results': paginated_response.get('results', serializer.data)
         })
+
+class ServiceOrderDeleteApiView(generics.DestroyAPIView):
+    queryset = models.ServiceOrder.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'id'
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.delete()
+        return Response({"message": "ServiceOrder deleted successfully"})
+
+class ServiceOrderUpdateApiView(generics.UpdateAPIView):
+    serializer_class = serializers.ServiceOrderUpdateSerializer
+    queryset = models.ServiceOrder.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'id'
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
