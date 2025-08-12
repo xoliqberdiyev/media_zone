@@ -24,7 +24,7 @@ class Client(BaseModel):
     def back_color(self):
         latest_comment = self.comments.order_by('-date').first()
         if not latest_comment:
-            return 'green'  # Default if no comments exist
+            return 'green'
         today = timezone.now().date()
         comment_date = latest_comment.date
         days_diff = (comment_date - today).days

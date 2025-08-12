@@ -29,6 +29,7 @@ class ServiceOrderCreateSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         with transaction.atomic():
+            # Create ServiceOrder
             service_order = ServiceOrder.objects.create(
                 date=validated_data.get('date'),
                 start_time=validated_data.get('start_time'),
@@ -40,24 +41,31 @@ class ServiceOrderCreateSerializer(serializers.Serializer):
                 service=validated_data.get('service'),
                 type='crm'
             )
-            client, _ = Client.objects.get_or_create(
-                phone=service_order.phone,
+            # Create or get Client
+            client, created = Client.objects.get_or_create(
+                phone=validated_data.get('phone'),
                 defaults={
-                    'name': service_order.full_name,
+                    'name': validated_data.get('full_name'),
                     'status': 'new'
                 }
             )
-            if service_order.description:
+            if not created:
+                # Update name if client already exists
+                client.name = validated_data.get('full_name')
+                client.save()
+            # Create ClientComment if description exists
+            if validated_data.get('description'):
                 ClientComment.objects.create(
                     client=client,
                     date=service_order.date,
-                    comment=service_order.description
+                    comment=validated_data.get('description')
                 )
-            category, _ = IncomeCategory.objects.get_or_create(name='Mijozlar')
-            if service_order.price is not None:
+            # Create Income if price exists
+            if validated_data.get('price') is not None:
+                category, _ = IncomeCategory.objects.get_or_create(name='Mijozlar')
                 Income.objects.create(
                     category=category,
-                    price=service_order.price,
+                    price=validated_data.get('price'),
                     date=service_order.date,
                 )
             return service_order
