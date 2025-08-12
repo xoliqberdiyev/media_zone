@@ -24,16 +24,18 @@ class Client(BaseModel):
     def back_color(self):
         latest_comment = self.comments.order_by('-date').first()
         if not latest_comment:
-            return 'green'
+            return None  # oldin green edi
+
         today = timezone.now().date()
         comment_date = latest_comment.date
         days_diff = (comment_date - today).days
-        if days_diff > 2:
-            return 'green'
-        elif 1 <= days_diff <= 2:
+
+        if 1 <= days_diff <= 2:
             return 'yellow'
-        else:
+        elif days_diff < 1:
             return 'red'
+
+        return None
 
 class ClientComment(BaseModel):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='comments')
