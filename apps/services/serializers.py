@@ -3,11 +3,16 @@ from rest_framework import serializers
 from apps.services.models import Service, ServiceOrder
 from apps.client.models import Client, ClientComment
 from apps.finance.models import Income, IncomeCategory
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class ServiceListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = ['id', 'name_uz', 'name_ru', 'monthly_income']
+
 
 class ServiceOrderCreateSerializer(serializers.Serializer):
     date = serializers.DateField()
@@ -19,6 +24,12 @@ class ServiceOrderCreateSerializer(serializers.Serializer):
     description = serializers.CharField(required=False, allow_blank=True)
     service_id = serializers.UUIDField()
 
+    def validate_phone(self, value):
+        import re
+        if not re.match(r'^\+\d{10,15}$', value):
+            raise serializers.ValidationError("Invalid phone format. Use + followed by 10-15 digits.")
+        return value
+
     def validate(self, data):
         try:
             service = Service.objects.get(id=data.get('service_id'))
@@ -29,51 +40,66 @@ class ServiceOrderCreateSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         with transaction.atomic():
-            # Create ServiceOrder
-            service_order = ServiceOrder.objects.create(
-                date=validated_data.get('date'),
-                start_time=validated_data.get('start_time'),
-                end_time=validated_data.get('end_time'),
-                price=validated_data.get('price'),
-                full_name=validated_data.get('full_name'),
-                phone=validated_data.get('phone'),
-                description=validated_data.get('description'),
-                service=validated_data.get('service'),
-                type='crm'
-            )
-            # Create or get Client
-            client, created = Client.objects.get_or_create(
-                phone=validated_data.get('phone'),
-                defaults={
-                    'name': validated_data.get('full_name'),
-                    'status': 'new'
-                }
-            )
-            if not created:
-                # Update name if client already exists
-                client.name = validated_data.get('full_name')
-                client.save()
-            # Create ClientComment if description exists
-            if validated_data.get('description'):
-                ClientComment.objects.create(
-                    client=client,
-                    date=service_order.date,
-                    comment=validated_data.get('description')
-                )
-            # Create Income if price exists
-            if validated_data.get('price') is not None:
-                category, _ = IncomeCategory.objects.get_or_create(name='Mijozlar')
-                Income.objects.create(
-                    category=category,
+            try:
+                # Create ServiceOrder
+                service_order = ServiceOrder.objects.create(
+                    date=validated_data.get('date'),
+                    start_time=validated_data.get('start_time'),
+                    end_time=validated_data.get('end_time'),
                     price=validated_data.get('price'),
-                    date=service_order.date,
+                    full_name=validated_data.get('full_name'),
+                    phone=validated_data.get('phone'),
+                    description=validated_data.get('description'),
+                    service=validated_data.get('service'),
+                    type='crm'
                 )
-            return service_order
+                logger.info(f"Created ServiceOrder: {service_order.id}")
+
+                # Create or get Client
+                client, created = Client.objects.get_or_create(
+                    phone=validated_data.get('phone'),
+                    defaults={
+                        'name': validated_data.get('full_name'),
+                        'status': 'new'
+                    }
+                )
+                if created:
+                    logger.info(f"Created new Client: {client.id}, phone: {client.phone}")
+                else:
+                    client.name = validated_data.get('full_name')
+                    client.save()
+                    logger.info(f"Updated existing Client: {client.id}, phone: {client.phone}")
+
+                # Create ClientComment if description exists
+                if validated_data.get('description'):
+                    comment = ClientComment.objects.create(
+                        client=client,
+                        date=service_order.date,
+                        comment=validated_data.get('description')
+                    )
+                    logger.info(f"Created ClientComment: {comment.id} for Client: {client.id}")
+
+                # Create Income if price exists
+                if validated_data.get('price') is not None:
+                    category, _ = IncomeCategory.objects.get_or_create(name='Mijozlar')
+                    income = Income.objects.create(
+                        category=category,
+                        price=validated_data.get('price'),
+                        date=service_order.date,
+                    )
+                    logger.info(f"Created Income: {income.id} for ServiceOrder: {service_order.id}")
+
+                return service_order
+            except Exception as e:
+                logger.error(f"Error creating ServiceOrder: {str(e)}")
+                raise
+
 
 class ServiceOrderListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceOrder
         fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type']
+
 
 class ServiceOrderUpdateSerializer(serializers.ModelSerializer):
     date = serializers.DateField(required=False)
