@@ -29,6 +29,7 @@ class RoomOrderCreateSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         with transaction.atomic():
+            # Create RoomOrder
             room_order = RoomOrder.objects.create(
                 date=validated_data.get('date'),
                 start_time=validated_data.get('start_time'),
@@ -40,24 +41,31 @@ class RoomOrderCreateSerializer(serializers.Serializer):
                 room=validated_data.get('room'),
                 type='crm'
             )
-            client, _ = Client.objects.get_or_create(
-                phone=room_order.phone,
+            # Create or get Client
+            client, created = Client.objects.get_or_create(
+                phone=validated_data.get('phone'),
                 defaults={
-                    'name': room_order.full_name,
+                    'name': validated_data.get('full_name'),
                     'status': 'new'
                 }
             )
-            if room_order.description:
+            if not created:
+                # Update name if client already exists
+                client.name = validated_data.get('full_name')
+                client.save()
+            # Create ClientComment if description exists
+            if validated_data.get('description'):
                 ClientComment.objects.create(
                     client=client,
                     date=room_order.date,
-                    comment=room_order.description
+                    comment=validated_data.get('description')
                 )
-            category, _ = IncomeCategory.objects.get_or_create(name='Mijozlar')
-            if room_order.price is not None:
+            # Create Income if price exists
+            if validated_data.get('price') is not None:
+                category, _ = IncomeCategory.objects.get_or_create(name='Mijozlar')
                 Income.objects.create(
                     category=category,
-                    price=room_order.price,
+                    price=validated_data.get('price'),
                     date=room_order.date,
                 )
             return room_order
