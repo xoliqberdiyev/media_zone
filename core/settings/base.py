@@ -19,6 +19,7 @@ LOCAL_APPS = [
     'apps.estimate',
     'apps.rooms',
     'apps.web',
+    'apps.services',
 ]
 
 THIRD_PARTY_PACKAGES = [

@@ -29,6 +29,7 @@ urlpatterns = [
          path('estimate/', include('apps.estimate.urls')),
          path('rooms/', include('apps.rooms.urls')),
          path('web/', include('apps.web.urls')),
+          path("services/", include('apps.services.urls')),
       ]
    ))
 ]
