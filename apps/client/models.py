@@ -1,5 +1,6 @@
 from django.db import models
-
+from django.utils import timezone
+from datetime import timedelta
 from apps.shared.models import BaseModel
 
 NEW, IN_PROGRESS, CANCELLED, DONE = ('new', 'in_progress', 'cancelled', 'done')
@@ -18,7 +19,21 @@ class Client(BaseModel):
 
     def __str__(self):
         return f'{self.name} - {self.status}'
-    
+
+    @property
+    def back_color(self):
+        latest_comment = self.comments.order_by('-date').first()
+        if not latest_comment:
+            return 'green'  # Default if no comments exist
+        today = timezone.now().date()
+        comment_date = latest_comment.date
+        days_diff = (comment_date - today).days
+        if days_diff > 2:
+            return 'green'
+        elif 1 <= days_diff <= 2:
+            return 'yellow'
+        else:
+            return 'red'
 
 class ClientComment(BaseModel):
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='comments')
@@ -27,4 +42,3 @@ class ClientComment(BaseModel):
 
     def __str__(self):
         return self.comment
-

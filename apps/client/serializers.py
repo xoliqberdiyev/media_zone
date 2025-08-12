@@ -1,7 +1,5 @@
 from django.db import transaction
-
 from rest_framework import serializers
-
 from apps.client.models import Client, ClientComment
 
 class ClientCreateSerializer(serializers.Serializer):
@@ -28,7 +26,6 @@ class ClientCreateSerializer(serializers.Serializer):
                 date=validated_data.get('date')
             )
             return client
-    
 
 class ClientUpdateSerializer(serializers.ModelSerializer):
     comment = serializers.CharField(required=False)
@@ -51,19 +48,17 @@ class ClientUpdateSerializer(serializers.ModelSerializer):
                 date=validated_data.get('date')
             )
         return super().update(instance, validated_data)
-    
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientComment
         fields = ['id', 'comment', 'date', 'created_at']
 
-
 class ClientListSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True)
-    
+
     class Meta:
         model = Client
         fields = [
-            'id', 'name', 'phone', 'status', 'comments'
+            'id', 'name', 'phone', 'status', 'back_color', 'comments'
         ]
