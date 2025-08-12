@@ -1,54 +1,94 @@
-# models.py
-from django.utils import timezone
-from django.db import models
-from apps.shared.models import BaseModel
+from django.shortcuts import get_object_or_404
+from rest_framework import generics, permissions
+from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
+from apps.services import serializers, models
+from apps.shared.pagination import CustomPageNumberPagination
+from django.db.models import Sum, Count
 
-class Service(BaseModel):
-    name = models.CharField(max_length=150)
-    monthly_income = models.PositiveBigIntegerField(default=0)
-    service_price_per_hour = models.PositiveBigIntegerField(default=0)
-    image = models.ImageField(upload_to="media_zone/services/", null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
+class ServiceListApiView(generics.ListAPIView):
+    serializer_class = serializers.ServiceListSerializer
+    queryset = models.Service.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
-    def __str__(self):
-        return self.name
+class ServiceOrderCreateApiView(generics.CreateAPIView):
+    serializer_class = serializers.ServiceOrderCreateSerializer
+    queryset = models.ServiceOrder.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
-    def update_monthly_income(self):
-        """Foydalanuvchi chaqirganda joriy oydagi daromadni hisoblaydi"""
-        now = timezone.now()
-        total = ServiceOrder.objects.filter(
-            service=self,
-            date__month=now.month,
-            date__year=now.year
-        ).aggregate(total_price=models.Sum('price'))['total_price'] or 0
-        self.monthly_income = total
-        # update faqat shu fieldni
-        Service.objects.filter(pk=self.pk).update(monthly_income=total)
+class ServiceOrderListApiView(generics.ListAPIView):
+    serializer_class = serializers.ServiceOrderListSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = CustomPageNumberPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['date']
 
+    SERVICE_PRICES = {
+        "2b6a229a-618b-4fbd-8231-8a56a2898415": 99000,    # Classic service
+        "91cc328f-57d3-41d7-bac0-27cc0f269a46": 150000,   # Siklorama service
+        "4d302e7b-9b97-435d-a431-b772d537044b": 300000,   # Onix service
+        "d873017b-793c-4ec9-9764-a349afc94c8f": 99000     # Reels service
+    }
 
-class ServiceOrder(BaseModel):
-    date = models.DateField()
-    start_time = models.TimeField()
-    end_time = models.TimeField()
-    price = models.PositiveBigIntegerField(null=True, blank=True)
-    full_name = models.CharField(max_length=150)
-    phone = models.CharField(max_length=15)
-    description = models.TextField(null=True, blank=True)
-    type = models.CharField(choices=[('crm', 'crm'), ('web', 'web')], max_length=3, default='crm')
-    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name="service_orders")
+    def get_queryset(self):
+        service_id = self.kwargs.get('service_id')
+        queryset = models.ServiceOrder.objects.filter(service_id=service_id)
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+        if start_date and end_date:
+            queryset = queryset.filter(date__range=[start_date, end_date])
+        return queryset.order_by('start_time')
 
-    def __str__(self):
-        return self.full_name
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)  # Avval buyurtmani saqlaymiz
-        # Keyin faqat monthly_income ni yangilaymiz
-        self.service.update_monthly_income()
+        serializer = self.get_serializer(page, many=True)
+        paginated_response = self.get_paginated_response(serializer.data).data
 
+        total_income = queryset.aggregate(Sum('price'))['price__sum'] or 0
+        total_visitors = queryset.count()
+        total_hours = 0
+        for order in queryset:
+            start = order.start_time
+            end = order.end_time
+            hours = (end.hour * 60 + end.minute - start.hour * 60 - start.minute) / 60
+            total_hours += max(hours, 0)
 
-class ServiceImage(BaseModel):
-    image = models.ImageField(upload_to="media_zone/service_images/")
-    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name="service_images")
+        service_id = self.kwargs.get('service_id')
+        service_price = self.SERVICE_PRICES.get(str(service_id))
 
-    def __str__(self):
-        return self.service.name
+        return Response({
+            'page': paginated_response.get('page', 1),
+            'page_size': paginated_response.get('page_size', self.pagination_class.page_size),
+            'total_pages': paginated_response.get('total_pages', 1),
+            'total_items': paginated_response.get('total_items', queryset.count()),
+            'total_income': total_income,
+            'total_hours_booked': int(total_hours),
+            'total_visitors': total_visitors,
+            'service_price': service_price,
+            'results': paginated_response.get('results', serializer.data)
+        })
+
+class ServiceOrderDeleteApiView(generics.DestroyAPIView):
+    queryset = models.ServiceOrder.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'id'
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.delete()
+        return Response({"message": "ServiceOrder deleted successfully"})
+
+class ServiceOrderUpdateApiView(generics.UpdateAPIView):
+    serializer_class = serializers.ServiceOrderUpdateSerializer
+    queryset = models.ServiceOrder.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'id'
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
