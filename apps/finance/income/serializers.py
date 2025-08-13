@@ -3,7 +3,6 @@ from rest_framework import serializers
 from apps.finance.models import Income, IncomeCategory
 
 
-
 class IncomeCategorySerializer(serializers.ModelSerializer):
     total_price = serializers.IntegerField(source='total_price_calc')
 

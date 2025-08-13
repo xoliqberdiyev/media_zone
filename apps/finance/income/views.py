@@ -1,17 +1,17 @@
 from django.db.models.functions import ExtractYear, ExtractMonth
 from django.shortcuts import get_object_or_404
-from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend
-from apps.finance.models import Income, IncomeCategory
-from apps.finance.income import serializers
 from datetime import datetime
-from rest_framework import views, permissions
+from rest_framework import views
 from rest_framework.response import Response
 from apps.finance.models import Income
 from apps.finance.income.serializers import IncomeStatisticsSerializer
-from django.db.models import Sum
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django.db.models import Sum
+from rest_framework import generics, permissions
+from apps.finance.models import IncomeCategory
+from apps.finance.income import serializers
 
 class IncomeCreateApiView(generics.CreateAPIView):
     queryset = Income.objects.all()
@@ -26,7 +26,7 @@ class IncomeCategoryApiView(generics.ListAPIView):
 
     def get_queryset(self):
         return IncomeCategory.objects.annotate(
-            total_price_calc=Sum('income__price')
+            total_price_calc=Sum('incomes__price')
         )
 
 class IncomeStatistsApiView(views.APIView):
