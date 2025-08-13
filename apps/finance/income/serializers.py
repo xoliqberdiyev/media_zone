@@ -1,11 +1,18 @@
 from django.db import transaction
 from rest_framework import serializers
 from apps.finance.models import Income, IncomeCategory
+from django.db.models import Sum
 
 class IncomeCategorySerializer(serializers.ModelSerializer):
+    total_price = serializers.SerializerMethodField()
+
     class Meta:
         model = IncomeCategory
         fields = ['id', 'name', 'total_price']
+
+    def get_total_price(self, obj):
+        return obj.income_set.aggregate(total=Sum('price'))['total'] or 0
+
 
 class IncomeCreateSerializer(serializers.Serializer):
     category_id = serializers.UUIDField()
