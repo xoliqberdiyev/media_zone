@@ -25,6 +25,7 @@ class IncomeCreateApiView(generics.CreateAPIView):
 class IncomeCategoryApiView(generics.ListAPIView):
     serializer_class = serializers.IncomeCategorySerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = CustomPagination  # Pagination qo'shildi
 
     def get_queryset(self):
         return IncomeCategory.objects.all()
@@ -85,7 +86,7 @@ class IncomeListApiView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['date']
-    pagination_class = CustomPagination  # Paginationni aniq belgilash
+    pagination_class = CustomPagination
 
     @swagger_auto_schema(
         manual_parameters=[

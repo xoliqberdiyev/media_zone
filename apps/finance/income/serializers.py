@@ -13,19 +13,21 @@ class IncomeCategorySerializer(serializers.ModelSerializer):
 
     def get_total_price(self, obj):
         request = self.context.get('request')
-        start_date = request.query_params.get('start_date')
-        end_date = request.query_params.get('end_date')
-
+        view = self.context['view'] if 'view' in self.context else None
         queryset = Income.objects.filter(category=obj)
-        if start_date and end_date:
-            try:
-                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-                queryset = queryset.filter(date__range=[start_date, end_date])
-            except ValueError:
-                pass
 
-        return queryset.aggregate(total=Sum('price'))['total'] or 0
+        if view and hasattr(view, 'paginator') and request:
+            # Pagination bilan joriy sahifani olish
+            paginator = view.paginator
+            page_number = request.query_params.get('page', 1)
+            page_size = request.query_params.get('page_size', 10)
+            paginated_queryset = paginator.paginate_queryset(queryset, request, view=view)
+            total = sum(item.price for item in paginated_queryset) if paginated_queryset else 0
+        else:
+            # Agar pagination yo'q bo'lsa, barcha yozuvlarni hisoblash
+            total = queryset.aggregate(total=Sum('price'))['total'] or 0
+
+        return total
 
 class IncomeCreateSerializer(serializers.Serializer):
     category_id = serializers.UUIDField()
@@ -58,12 +60,10 @@ class IncomeListSerializer(serializers.ModelSerializer):
     def get_total_price(self, obj):
         request = self.context.get('request')
         view = self.context['view']
-        queryset = view.get_queryset()  # Joriy filtrlangan queryset
+        queryset = view.get_queryset()
 
         # Pagination bilan joriy sahifani olish
         paginator = view.paginator
-        page_number = request.query_params.get('page', 1)
-        page_size = request.query_params.get('page_size', 10)
         paginated_queryset = paginator.paginate_queryset(queryset, request, view=view)
 
         # Joriy sahifadagi price larni yig'ish
