@@ -2,20 +2,16 @@ from django.db.models.functions import ExtractYear, ExtractMonth
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.pagination import PageNumberPagination
 from apps.finance.models import Income, IncomeCategory
 from apps.finance.income import serializers
 from datetime import datetime
 from rest_framework import views, permissions
 from rest_framework.response import Response
+from apps.finance.models import Income
+from apps.finance.income.serializers import IncomeStatisticsSerializer
 from django.db.models import Sum
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-
-class CustomPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 100
 
 class IncomeCreateApiView(generics.CreateAPIView):
     queryset = Income.objects.all()
@@ -24,22 +20,19 @@ class IncomeCreateApiView(generics.CreateAPIView):
 
 class IncomeCategoryApiView(generics.ListAPIView):
     serializer_class = serializers.IncomeCategorySerializer
+    queryset = IncomeCategory.objects.all()
     permission_classes = [permissions.IsAuthenticated]
-    pagination_class = CustomPagination  # Pagination qo'shildi
-
-    def get_queryset(self):
-        return IncomeCategory.objects.all()
 
 class IncomeStatistsApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.IncomeStatisticsSerializer
+    serializer_class = IncomeStatisticsSerializer
 
     @swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter('start_date', openapi.IN_QUERY, description="Boshlanish sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=True),
             openapi.Parameter('end_date', openapi.IN_QUERY, description="Tugash sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=True),
         ],
-        responses={200: serializers.IncomeStatisticsSerializer}
+        responses={200: IncomeStatisticsSerializer}
     )
     def get(self, request):
         start_date = request.query_params.get('start_date')
@@ -81,12 +74,30 @@ class IncomeMonthlyStatisticsApiView(views.APIView):
 
         return Response(result)
 
+# class IncomeListApiView(generics.ListAPIView):
+#     serializer_class = serializers.IncomeListSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+#     filter_backends = [DjangoFilterBackend]
+#     filterset_fields = ['date']
+#
+#     def get_queryset(self):
+#         queryset = Income.objects.all()
+#         category_id = self.kwargs.get('id')
+#         start_date = self.request.query_params.get('start_date')
+#         end_date = self.request.query_params.get('end_date')
+#
+#         if category_id:
+#             queryset = queryset.filter(category__id=category_id)
+#         if start_date and end_date:
+#             queryset = queryset.filter(date__range=[start_date, end_date])
+#
+#         return queryset.order_by('-date')
+
 class IncomeListApiView(generics.ListAPIView):
     serializer_class = serializers.IncomeListSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['date']
-    pagination_class = CustomPagination
 
     @swagger_auto_schema(
         manual_parameters=[
