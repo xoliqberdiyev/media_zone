@@ -78,25 +78,6 @@ class IncomeMonthlyStatisticsApiView(views.APIView):
 
         return Response(result)
 
-# class IncomeListApiView(generics.ListAPIView):
-#     serializer_class = serializers.IncomeListSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-#     filter_backends = [DjangoFilterBackend]
-#     filterset_fields = ['date']
-#
-#     def get_queryset(self):
-#         queryset = Income.objects.all()
-#         category_id = self.kwargs.get('id')
-#         start_date = self.request.query_params.get('start_date')
-#         end_date = self.request.query_params.get('end_date')
-#
-#         if category_id:
-#             queryset = queryset.filter(category__id=category_id)
-#         if start_date and end_date:
-#             queryset = queryset.filter(date__range=[start_date, end_date])
-#
-#         return queryset.order_by('-date')
-
 class IncomeListApiView(generics.ListAPIView):
     serializer_class = serializers.IncomeListSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -105,24 +86,22 @@ class IncomeListApiView(generics.ListAPIView):
 
     @swagger_auto_schema(
         manual_parameters=[
-            openapi.Parameter(
-                'start_date',
-                openapi.IN_QUERY,
-                description="Boshlanish sanasi (YYYY-MM-DD)",
-                type=openapi.TYPE_STRING,
-                required=False
-            ),
-            openapi.Parameter(
-                'end_date',
-                openapi.IN_QUERY,
-                description="Tugash sanasi (YYYY-MM-DD)",
-                type=openapi.TYPE_STRING,
-                required=False
-            ),
+            openapi.Parameter('start_date', openapi.IN_QUERY, description="Boshlanish sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=False),
+            openapi.Parameter('end_date', openapi.IN_QUERY, description="Tugash sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=False),
         ]
     )
     def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
+        queryset = self.get_queryset()
+        total_price = queryset.aggregate(total_price=Sum('price'))['total_price'] or 0
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            "page": self.paginator.page.number,
+            "page_size": self.paginator.page_size,
+            "total_pages": self.paginator.page.paginator.num_pages,
+            "total_items": self.paginator.page.paginator.count,
+            "results": serializer.data,
+            "total_price": total_price
+        })
 
     def get_queryset(self):
         queryset = Income.objects.all()
