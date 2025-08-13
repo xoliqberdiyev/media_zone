@@ -73,11 +73,8 @@ class IncomeCategoryApiView(generics.ListAPIView):
             except ValueError:
                 pass
 
-        # Faqat JSONdagi tranzaksiyalarni hisoblash uchun sahifalashni qo‘llaymiz
-        paginator = self.paginator
-        paginator.page_size = 10  # JSONdagi page_size: 10
-        page = paginator.paginate_queryset(queryset, self.request)
-        context['queryset'] = page if page is not None else queryset[:10]
+        # Pagination o'rniga to'liq QuerySet uzatamiz
+        context['queryset'] = queryset[:10]  # JSONdagi 10 ta tranzaksiyaga moslashtiramiz
         return context
 
 class IncomeStatistsApiView(views.APIView):
@@ -92,8 +89,8 @@ class IncomeStatistsApiView(views.APIView):
         responses={200: serializers.IncomeStatisticsSerializer}
     )
     def get(self, request):
-        start_date = request.query_params.get('start_date')
-        end_date = request.query_params.get('end_date')
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
         if not (start_date and end_date):
             return Response({"error": "start_date va end_date kerak (YYYY-MM-DD)"}, status=400)
 
@@ -223,7 +220,7 @@ class IncomeLastStatisticsView(APIView):
         ))}
     )
     def get(self, request):
-        last = request.query_params.get('last')
+        last = self.request.query_params.get('last')
         now = timezone.now().date()
 
         if last == 'last_day':
