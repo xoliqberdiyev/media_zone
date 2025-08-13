@@ -30,9 +30,9 @@ class Income(BaseModel):
 
     def save(self, *args, **kwargs):
         self.category.total_price += self.price
-        self.category.save()    
+        self.category.save()
         return super().save(args, kwargs)
-    
+
     def delete(self):
         self.category.total_price -= self.price
         self.category.save()
@@ -50,7 +50,7 @@ class Expence(BaseModel):
 
     def save(self, *args, **kwargs):
         self.category.total_price += self.price
-        self.category.save()    
+        self.category.save()
         return super().save(args, kwargs)
 
     def delete(self):
