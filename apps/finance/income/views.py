@@ -73,7 +73,11 @@ class IncomeCategoryApiView(generics.ListAPIView):
             except ValueError:
                 pass
 
-        context['queryset'] = queryset
+        # Faqat JSONdagi tranzaksiyalarni hisoblash uchun sahifalashni qo‘llaymiz
+        paginator = self.paginator
+        paginator.page_size = 10  # JSONdagi page_size: 10
+        page = paginator.paginate_queryset(queryset, self.request)
+        context['queryset'] = page if page is not None else queryset[:10]
         return context
 
 class IncomeStatistsApiView(views.APIView):
