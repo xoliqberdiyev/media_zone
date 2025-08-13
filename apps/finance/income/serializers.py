@@ -3,6 +3,10 @@ from rest_framework import serializers
 from apps.finance.models import Income, IncomeCategory
 from datetime import datetime
 from django.db.models import Sum
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 class IncomeCategorySerializer(serializers.ModelSerializer):
     total_price = serializers.SerializerMethodField()
@@ -13,20 +17,23 @@ class IncomeCategorySerializer(serializers.ModelSerializer):
 
     def get_total_price(self, obj):
         request = self.context.get('request')
-        view = self.context['view'] if 'view' in self.context else None
+        view = self.context.get('view')
         queryset = Income.objects.filter(category=obj)
 
         if view and hasattr(view, 'paginator') and request:
-            # Pagination bilan joriy sahifani olish
             paginator = view.paginator
-            page_number = request.query_params.get('page', 1)
-            page_size = request.query_params.get('page_size', 10)
-            paginated_queryset = paginator.paginate_queryset(queryset, request, view=view)
-            total = sum(item.price for item in paginated_queryset) if paginated_queryset else 0
+            try:
+                paginated_queryset = paginator.paginate_queryset(queryset, request, view=view)
+                logger.debug(f"Joriy sahifa yozuvlari soni: {len(paginated_queryset)}")
+                logger.debug(f"Joriy sahifa yozuvlari: {[item.price for item in paginated_queryset]}")
+                total = sum(item.price for item in paginated_queryset) if paginated_queryset else 0
+            except Exception as e:
+                logger.error(f"Pagination xatosi: {e}")
+                total = queryset.aggregate(total=Sum('price'))['total'] or 0
         else:
-            # Agar pagination yo'q bo'lsa, barcha yozuvlarni hisoblash
             total = queryset.aggregate(total=Sum('price'))['total'] or 0
 
+        logger.debug(f"Hisoblangan total_price '{obj.name}' uchun: {total}")
         return total
 
 class IncomeCreateSerializer(serializers.Serializer):
@@ -62,11 +69,9 @@ class IncomeListSerializer(serializers.ModelSerializer):
         view = self.context['view']
         queryset = view.get_queryset()
 
-        # Pagination bilan joriy sahifani olish
         paginator = view.paginator
         paginated_queryset = paginator.paginate_queryset(queryset, request, view=view)
 
-        # Joriy sahifadagi price larni yig'ish
         total = sum(item.price for item in paginated_queryset) if paginated_queryset else 0
         return total
 
