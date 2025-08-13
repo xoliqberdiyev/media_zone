@@ -26,6 +26,10 @@ class IncomeCategoryApiView(generics.ListAPIView):
     def get_queryset(self):
         return IncomeCategory.objects.all()
 
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        return response
+
 class IncomeStatistsApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = IncomeStatisticsSerializer
