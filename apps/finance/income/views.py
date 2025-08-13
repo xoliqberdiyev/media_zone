@@ -23,9 +23,36 @@ class IncomeCategoryApiView(generics.ListAPIView):
     queryset = IncomeCategory.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter('category_id', openapi.IN_QUERY, description="Kategoriya ID (UUID)", type=openapi.TYPE_STRING, required=False),
+            openapi.Parameter('start_date', openapi.IN_QUERY, description="Boshlanish sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=False),
+            openapi.Parameter('end_date', openapi.IN_QUERY, description="Tugash sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=False),
+        ]
+    )
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer_context = self.get_serializer_context()
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page if page is not None else queryset, many=True, context=serializer_context)
+        if page is not None:
+            return Response({
+                "page": self.paginator.page.number,
+                "page_size": self.paginator.page_size,
+                "total_pages": self.paginator.page.paginator.num_pages,
+                "total_items": self.paginator.page.paginator.count,
+                "results": serializer.data
+            })
+        return Response({
+            "page": 1,
+            "page_size": queryset.count(),
+            "total_pages": 1,
+            "total_items": queryset.count(),
+            "results": serializer.data
+        })
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        # IncomeListApiView'dan olingan queryset'ni context'ga qo'shamiz
         category_id = self.request.query_params.get('category_id')
         start_date = self.request.query_params.get('start_date')
         end_date = self.request.query_params.get('end_date')

@@ -11,7 +11,6 @@ class IncomeCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'total_price']
 
     def get_total_price(self, obj):
-        # Faqat berilgan tranzaksiyalarni hisoblash uchun context ishlatiladi
         queryset = self.context.get('queryset', Income.objects.filter(category=obj))
         total = queryset.aggregate(total_price=Sum('price'))['total_price'] or 0
         return total
