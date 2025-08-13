@@ -1,4 +1,4 @@
-from django.urls import path, include 
+from django.urls import path, include
 from apps.finance.income import views as income_views
 from apps.finance.expence import views as expence_views
 
@@ -12,7 +12,6 @@ urlpatterns = [
             path('category/<uuid:id>/expence/list/', expence_views.ExpenceListApiView.as_view(), name='expence_list'),
             path('<uuid:id>/delete/', expence_views.ExpenceDeleteApiView.as_view(), name='expence_delete'),
             path('<uuid:id>/update/', expence_views.ExpenceUpdateApiView.as_view(), name='expence_update'),
-            path('last-statistics/', expence_views.ExpenceLastStatisticsView.as_view(), name='expence_last_statistics'),
         ]
     )),
     path('income/', include(
@@ -24,7 +23,6 @@ urlpatterns = [
             path('category/<uuid:id>/income/list/', income_views.IncomeListApiView.as_view(), name='income_list'),
             path('<uuid:id>/delete/', income_views.IncomeDeleteApiView.as_view(), name='income_delete'),
             path('<uuid:id>/update/', income_views.IncomeUpdateApiView.as_view(), name='income_update'),
-            path('last-statistics/', income_views.IncomeLastStatisticsView.as_view(), name='income_last_statistics'),
         ]
     ))
 ]

@@ -14,9 +14,6 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from apps.finance import models
 from apps.shared.pagination import CustomPageNumberPagination
-from django.utils import timezone
-from datetime import timedelta
-from rest_framework.views import APIView
 
 
 class ExpenceCreateApiView(generics.CreateAPIView):
@@ -134,8 +131,6 @@ class ExpenceListApiView(generics.ListAPIView):
         return queryset.order_by('-date')
 
 
-
-
 # class ExpenceListApiView(generics.ListAPIView):
 #     serializer_class = serializers.ExpenceListSerializer
 #     permission_classes = [permissions.IsAuthenticated]
@@ -156,7 +151,6 @@ class ExpenceListApiView(generics.ListAPIView):
 #         return queryset.order_by('-date')
 
 
-
 class ExpenceDeleteApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -165,55 +159,9 @@ class ExpenceDeleteApiView(views.APIView):
         expence.delete()
         return Response({"success": True, "message": "deleted!"}, status=status.HTTP_204_NO_CONTENT)
 
+
 class ExpenceUpdateApiView(generics.UpdateAPIView):
     serializer_class = serializers.ExpenceUpdateSerializer
     queryset = Expence.objects.all()
     lookup_field = 'id'
     permission_classes = [permissions.IsAuthenticated]
-
-
-class ExpenceLastStatisticsView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter(
-                'last',
-                openapi.IN_QUERY,
-                description="Vaqt oralig'i: last_day, last_week, last_month, last_year",
-                type=openapi.TYPE_STRING,
-                required=True
-            ),
-        ],
-        responses={200: openapi.Response('Umumiy chiqim', schema=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                'last_day': openapi.Schema(type=openapi.TYPE_INTEGER),
-                'last_week': openapi.Schema(type=openapi.TYPE_INTEGER),
-                'last_month': openapi.Schema(type=openapi.TYPE_INTEGER),
-                'last_year': openapi.Schema(type=openapi.TYPE_INTEGER)
-            }
-        ))}
-    )
-    def get(self, request):
-        last = request.query_params.get('last')
-        now = timezone.now().date()
-
-        if last == 'last_day':
-            start_date = now - timedelta(days=1)
-            key = 'last_day'
-        elif last == 'last_week':
-            start_date = now - timedelta(weeks=1)
-            key = 'last_week'
-        elif last == 'last_month':
-            start_date = now - timedelta(days=30)
-            key = 'last_month'
-        elif last == 'last_year':
-            start_date = now - timedelta(days=365)
-            key = 'last_year'
-        else:
-            return Response({"error": "Noto‘g‘ri 'last' parametri"}, status=400)
-
-        total_expense = Expence.objects.filter(date__gte=start_date).aggregate(Sum('price'))['price__sum'] or 0
-
-        return Response({key: total_expense})
