@@ -60,12 +60,15 @@ class IncomeListSerializer(serializers.ModelSerializer):
         view = self.context['view']
         queryset = view.get_queryset()  # Joriy filtrlangan queryset
 
-        # Joriy sahifadagi yozuvlarni olish
+        # Pagination bilan joriy sahifani olish
         paginator = view.paginator
-        page = paginator.page(request.query_params.get('page', 1))
-        paginated_queryset = page.object_list
+        page_number = request.query_params.get('page', 1)
+        page_size = request.query_params.get('page_size', 10)
+        paginated_queryset = paginator.get_page(queryset, page_number, page_size)
 
-        return sum(item.price for item in paginated_queryset) or 0
+        # Joriy sahifadagi price larni yig'ish
+        total = sum(item.price for item in paginated_queryset.object_list) if paginated_queryset.object_list else 0
+        return total
 
 class IncomeUpdateSerializer(serializers.ModelSerializer):
     class Meta:
