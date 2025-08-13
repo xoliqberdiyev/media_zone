@@ -73,8 +73,8 @@ class IncomeCategoryApiView(generics.ListAPIView):
             except ValueError:
                 pass
 
-        # Pagination o'rniga to'liq QuerySet uzatamiz
-        context['queryset'] = queryset[:10]  # JSONdagi 10 ta tranzaksiyaga moslashtiramiz
+        # Faqat JSONdagi 10 ta tranzaksiyani hisoblash uchun
+        context['queryset'] = queryset[:10]  # JSONdagi page_size: 10
         return context
 
 class IncomeStatistsApiView(views.APIView):
@@ -143,7 +143,9 @@ class IncomeListApiView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         page = self.paginate_queryset(queryset)
-        total_price = queryset.aggregate(total_price=Sum('price'))['total_price'] or 0
+        # Faqat JSONdagi 10 ta tranzaksiyaning summasini hisoblaymiz
+        limited_queryset = queryset[:10] if page is None else page
+        total_price = limited_queryset.aggregate(total_price=Sum('price'))['total_price'] or 0
         serializer = self.get_serializer(page if page is not None else queryset, many=True)
         if page is not None:
             return Response({
