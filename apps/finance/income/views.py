@@ -18,17 +18,12 @@ class IncomeCreateApiView(generics.CreateAPIView):
     serializer_class = serializers.IncomeCreateSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-
 class IncomeCategoryApiView(generics.ListAPIView):
     serializer_class = serializers.IncomeCategorySerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return IncomeCategory.objects.all()
-
-    def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
-        return response
 
 class IncomeStatistsApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -80,25 +75,6 @@ class IncomeMonthlyStatisticsApiView(views.APIView):
             result[year][month] = total
 
         return Response(result)
-
-# class IncomeListApiView(generics.ListAPIView):
-#     serializer_class = serializers.IncomeListSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-#     filter_backends = [DjangoFilterBackend]
-#     filterset_fields = ['date']
-#
-#     def get_queryset(self):
-#         queryset = Income.objects.all()
-#         category_id = self.kwargs.get('id')
-#         start_date = self.request.query_params.get('start_date')
-#         end_date = self.request.query_params.get('end_date')
-#
-#         if category_id:
-#             queryset = queryset.filter(category__id=category_id)
-#         if start_date and end_date:
-#             queryset = queryset.filter(date__range=[start_date, end_date])
-#
-#         return queryset.order_by('-date')
 
 class IncomeListApiView(generics.ListAPIView):
     serializer_class = serializers.IncomeListSerializer
@@ -152,7 +128,6 @@ class IncomeListApiView(generics.ListAPIView):
 
         return queryset.order_by('-date')
 
-
 class IncomeDeleteApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -160,7 +135,6 @@ class IncomeDeleteApiView(views.APIView):
         income = get_object_or_404(Income, id=id)
         income.delete()
         return Response({"success": True, "message": "deleted!"}, status=204)
-
 
 class IncomeUpdateApiView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
