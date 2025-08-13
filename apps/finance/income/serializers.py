@@ -29,17 +29,6 @@ class IncomeCategorySerializer(serializers.ModelSerializer):
 
         return queryset.aggregate(total=Sum('price'))['total'] or 0
 
-        queryset = Income.objects.filter(category=obj)
-        if start_date and end_date:
-            try:
-                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-                queryset = queryset.filter(date__range=[start_date, end_date])
-            except ValueError:
-                pass
-
-        return queryset.aggregate(total=Sum('price'))['total'] or 0
-
 class IncomeCreateSerializer(serializers.Serializer):
     category_id = serializers.UUIDField()
     price = serializers.IntegerField()

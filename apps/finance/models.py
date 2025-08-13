@@ -5,18 +5,16 @@ from apps.shared.models import BaseModel
 
 class IncomeCategory(BaseModel):
     name = models.CharField(max_length=50, db_index=True, unique=True)
-    total_price = models.PositiveBigIntegerField(default=0)
 
     def __str__(self):
-        return f'{self.name} - {self.total_price}'
+        return f'{self.name}'
 
 
 class ExpenceCategory(BaseModel):
     name = models.CharField(max_length=50, db_index=True, unique=True)
-    total_price = models.PositiveBigIntegerField(default=0)
 
     def __str__(self):
-        return f'{self.name} - {self.total_price}'
+        return f'{self.name}'
 
 
 class Income(BaseModel):
@@ -29,13 +27,9 @@ class Income(BaseModel):
         return f'{self.price} - {self.date} income'
 
     def save(self, *args, **kwargs):
-        self.category.total_price += self.price
-        self.category.save()
-        return super().save(args, kwargs)
+        return super().save(*args, **kwargs)
 
     def delete(self):
-        self.category.total_price -= self.price
-        self.category.save()
         return super().delete()
 
 
@@ -49,11 +43,7 @@ class Expence(BaseModel):
         return f'{self.price} - {self.date} expence'
 
     def save(self, *args, **kwargs):
-        self.category.total_price += self.price
-        self.category.save()
-        return super().save(args, kwargs)
+        return super().save(*args, **kwargs)
 
     def delete(self):
-        self.category.total_price -= self.price
-        self.category.save()
         return super().delete()
