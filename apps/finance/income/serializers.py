@@ -64,10 +64,10 @@ class IncomeListSerializer(serializers.ModelSerializer):
         paginator = view.paginator
         page_number = request.query_params.get('page', 1)
         page_size = request.query_params.get('page_size', 10)
-        paginated_queryset = paginator.get_page(queryset, page_number, page_size)
+        paginated_queryset = paginator.paginate_queryset(queryset, request, view=view)
 
         # Joriy sahifadagi price larni yig'ish
-        total = sum(item.price for item in paginated_queryset.object_list) if paginated_queryset.object_list else 0
+        total = sum(item.price for item in paginated_queryset) if paginated_queryset else 0
         return total
 
 class IncomeUpdateSerializer(serializers.ModelSerializer):
