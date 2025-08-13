@@ -18,10 +18,15 @@ class IncomeCreateApiView(generics.CreateAPIView):
     serializer_class = serializers.IncomeCreateSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+
 class IncomeCategoryApiView(generics.ListAPIView):
     serializer_class = serializers.IncomeCategorySerializer
-    queryset = IncomeCategory.objects.all()
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return IncomeCategory.objects.annotate(
+            total_price=Sum('income__price')
+        )
 
 class IncomeStatistsApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]

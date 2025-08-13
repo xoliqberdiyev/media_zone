@@ -1,19 +1,13 @@
 from django.db import transaction
 from rest_framework import serializers
 from apps.finance.models import Income, IncomeCategory
-from django.db.models import Sum
-from rest_framework import permissions
-from rest_framework import generics
 
 
-class IncomeCategoryApiView(generics.ListAPIView):
-    serializer_class = serializers.IncomeCategorySerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        return IncomeCategory.objects.annotate(
-            total_price=Sum('income__price')
-        )
+class IncomeCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IncomeCategory
+        fields = ['id', 'name', 'total_price']
 
 class IncomeCreateSerializer(serializers.Serializer):
     category_id = serializers.UUIDField()
