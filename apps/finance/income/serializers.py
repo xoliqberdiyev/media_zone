@@ -1,6 +1,6 @@
 from django.db import transaction
 from rest_framework import serializers
-from apps.finance.models import IncomeCategory, Income
+from apps.finance.models import Income, IncomeCategory
 from django.db.models import Sum
 
 class IncomeCategorySerializer(serializers.ModelSerializer):
@@ -11,7 +11,9 @@ class IncomeCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'total_price']
 
     def get_total_price(self, obj):
-        total = Income.objects.filter(category=obj).aggregate(total_price=Sum('price'))['total_price'] or 0
+        # Faqat berilgan tranzaksiyalarni hisoblash uchun context ishlatiladi
+        queryset = self.context.get('queryset', Income.objects.filter(category=obj))
+        total = queryset.aggregate(total_price=Sum('price'))['total_price'] or 0
         return total
 
 class IncomeCreateSerializer(serializers.Serializer):
@@ -32,7 +34,6 @@ class IncomeCreateSerializer(serializers.Serializer):
         with transaction.atomic():
             income = Income.objects.create(**validated_data)
             return income
-        return None
 
 class IncomeListSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField()

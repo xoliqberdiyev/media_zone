@@ -1,21 +1,17 @@
 from django.db.models.functions import ExtractYear, ExtractMonth
 from django.shortcuts import get_object_or_404
-from rest_framework import generics
+from rest_framework import generics, views, permissions
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.finance.models import Income, IncomeCategory
 from apps.finance.income import serializers
-from datetime import datetime
-from rest_framework import views, permissions
 from rest_framework.response import Response
-from apps.finance.models import Income
-from apps.finance.income.serializers import IncomeStatisticsSerializer
 from django.db.models import Sum
+from datetime import datetime
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.utils import timezone
 from datetime import timedelta
 from rest_framework.views import APIView
-
 
 class IncomeCreateApiView(generics.CreateAPIView):
     queryset = Income.objects.all()
@@ -27,16 +23,42 @@ class IncomeCategoryApiView(generics.ListAPIView):
     queryset = IncomeCategory.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        # IncomeListApiView'dan olingan queryset'ni context'ga qo'shamiz
+        category_id = self.request.query_params.get('category_id')
+        start_date = self.request.query_params.get('start_date')
+        end_date = self.request.query_params.get('end_date')
+        queryset = Income.objects.all()
+
+        if category_id:
+            queryset = queryset.filter(category__id=category_id)
+        if start_date:
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                queryset = queryset.filter(date__gte=start_date)
+            except ValueError:
+                pass
+        if end_date:
+            try:
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+                queryset = queryset.filter(date__lte=end_date)
+            except ValueError:
+                pass
+
+        context['queryset'] = queryset
+        return context
+
 class IncomeStatistsApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = IncomeStatisticsSerializer
+    serializer_class = serializers.IncomeStatisticsSerializer
 
     @swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter('start_date', openapi.IN_QUERY, description="Boshlanish sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=True),
             openapi.Parameter('end_date', openapi.IN_QUERY, description="Tugash sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=True),
         ],
-        responses={200: IncomeStatisticsSerializer}
+        responses={200: serializers.IncomeStatisticsSerializer}
     )
     def get(self, request):
         start_date = request.query_params.get('start_date')
@@ -92,13 +114,23 @@ class IncomeListApiView(generics.ListAPIView):
     )
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
         total_price = queryset.aggregate(total_price=Sum('price'))['total_price'] or 0
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(page if page is not None else queryset, many=True)
+        if page is not None:
+            return Response({
+                "page": self.paginator.page.number,
+                "page_size": self.paginator.page_size,
+                "total_pages": self.paginator.page.paginator.num_pages,
+                "total_items": self.paginator.page.paginator.count,
+                "results": serializer.data,
+                "total_price": total_price
+            })
         return Response({
-            "page": self.paginator.page.number,
-            "page_size": self.paginator.page_size,
-            "total_pages": self.paginator.page.paginator.num_pages,
-            "total_items": self.paginator.page.paginator.count,
+            "page": 1,
+            "page_size": queryset.count(),
+            "total_pages": 1,
+            "total_items": queryset.count(),
             "results": serializer.data,
             "total_price": total_price
         })
@@ -147,13 +179,7 @@ class IncomeLastStatisticsView(APIView):
 
     @swagger_auto_schema(
         manual_parameters=[
-            openapi.Parameter(
-                'last',
-                openapi.IN_QUERY,
-                description="Vaqt oralig'i: last_day, last_week, last_month, last_year",
-                type=openapi.TYPE_STRING,
-                required=True
-            ),
+            openapi.Parameter('last', openapi.IN_QUERY, description="Vaqt oralig'i: last_day, last_week, last_month, last_year", type=openapi.TYPE_STRING, required=True),
         ],
         responses={200: openapi.Response('Umumiy kirim', schema=openapi.Schema(
             type=openapi.TYPE_OBJECT,
