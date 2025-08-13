@@ -5,16 +5,18 @@ from apps.shared.models import BaseModel
 
 class IncomeCategory(BaseModel):
     name = models.CharField(max_length=50, db_index=True, unique=True)
+    total_price = models.PositiveBigIntegerField(default=0)
 
-    def __str__(self):
-        return f'{self.name}'
+    def str(self):
+        return f'{self.name} - {self.total_price}'
 
 
 class ExpenceCategory(BaseModel):
     name = models.CharField(max_length=50, db_index=True, unique=True)
+    total_price = models.PositiveBigIntegerField(default=0)
 
-    def __str__(self):
-        return f'{self.name}'
+    def str(self):
+        return f'{self.name} - {self.total_price}'
 
 
 class Income(BaseModel):
@@ -23,13 +25,17 @@ class Income(BaseModel):
     date = models.DateField()
     comment = models.TextField(null=True, blank=True)
 
-    def __str__(self):
+    def str(self):
         return f'{self.price} - {self.date} income'
 
     def save(self, *args, **kwargs):
-        return super().save(*args, **kwargs)
+        self.category.total_price += self.price
+        self.category.save()
+        return super().save(args, kwargs)
 
     def delete(self):
+        self.category.total_price -= self.price
+        self.category.save()
         return super().delete()
 
 
@@ -39,11 +45,15 @@ class Expence(BaseModel):
     date = models.DateField()
     comment = models.TextField(null=True, blank=True)
 
-    def __str__(self):
+    def str(self):
         return f'{self.price} - {self.date} expence'
 
     def save(self, *args, **kwargs):
-        return super().save(*args, **kwargs)
+        self.category.total_price += self.price
+        self.category.save()
+        return super().save(args, kwargs)
 
     def delete(self):
+        self.category.total_price -= self.price
+        self.category.save()
         return super().delete()
