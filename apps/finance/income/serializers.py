@@ -44,7 +44,7 @@ class IncomeListSerializer(serializers.ModelSerializer):
 class IncomeUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Income
-        fields = ['page', 'page_size', 'total_pages', 'total_items', 'results', 'total_price']
+        fields = ['price', 'date', 'comment']
 
 class IncomeStatisticsSerializer(serializers.Serializer):
     total_income = serializers.IntegerField()
