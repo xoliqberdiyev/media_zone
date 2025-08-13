@@ -11,7 +11,8 @@ class IncomeCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'total_price']
 
     def get_total_price(self, obj):
-        return obj.income_set.aggregate(total=Sum('price'))['total'] or 0
+        return Income.objects.filter(category=obj).aggregate(total=Sum('price'))['total'] or 0
+
 
 
 class IncomeCreateSerializer(serializers.Serializer):
