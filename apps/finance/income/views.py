@@ -112,15 +112,15 @@ class IncomeListApiView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page if page is not None else queryset, many=True)
+        response_data = {'results': serializer.data}
+
+        category_id = self.kwargs.get('id')
+        if category_id:
+            category = get_object_or_404(IncomeCategory, id=category_id)
+            category_serializer = serializers.IncomeCategorySerializer(category)
+            response_data['category'] = category_serializer.data
+
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            category_id = self.kwargs.get('id')
-            if category_id:
-                category = get_object_or_404(IncomeCategory, id=category_id)
-                category_serializer = serializers.IncomeCategorySerializer(category)
-                return self.get_paginated_response({
-                    'category': category_serializer.data,
-                    'results': serializer.data
-                })
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+            return self.get_paginated_response(response_data)
+        return Response(response_data)
