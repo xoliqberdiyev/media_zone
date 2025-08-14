@@ -9,13 +9,13 @@ class RoomImageInline(admin.TabularInline):
 @admin.register(Room)
 class RoomAdmin(TranslationAdmin):
     inlines = [RoomImageInline]
-    list_display = ['name', 'monthly_income', 'room_price_per_hour', 'image']
+    list_display = ['name', 'monthly_income', 'room_price_per_hour']
     search_fields = ['name']
 
 @admin.register(RoomOrder)
 class RoomOrderAdmin(admin.ModelAdmin):
-    list_display = ['full_name', 'date', 'start_time', 'end_time', 'price', 'servis_type']  # Added servis_type
-    list_filter = ['date', 'type', 'servis_type']  # Added servis_type
+    list_display = ['full_name', 'date', 'start_time', 'end_time', 'price']
+    list_filter = ['date', 'type']
     search_fields = ['full_name', 'phone']
 
 @admin.register(RoomImage)

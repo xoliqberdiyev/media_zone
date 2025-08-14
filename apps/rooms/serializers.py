@@ -5,11 +5,9 @@ from apps.client.models import Client, ClientComment
 from apps.finance.models import Income, IncomeCategory
 
 class RoomListSerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(max_length=None, use_url=True, required=False, allow_null=True)  # Include image URL
-
     class Meta:
         model = Room
-        fields = ['id', 'name_uz', 'name_ru', 'monthly_income', 'image', 'description', 'room_price_per_hour']
+        fields = ['id', 'name_uz', 'name_ru', 'monthly_income']
 
 class RoomOrderCreateSerializer(serializers.Serializer):
     date = serializers.DateField()
@@ -20,7 +18,6 @@ class RoomOrderCreateSerializer(serializers.Serializer):
     phone = serializers.CharField()
     description = serializers.CharField(required=False, allow_blank=True)
     room_id = serializers.UUIDField()
-    servis_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     def validate(self, data):
         try:
@@ -32,6 +29,7 @@ class RoomOrderCreateSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         with transaction.atomic():
+            # Create RoomOrder
             room_order = RoomOrder.objects.create(
                 date=validated_data.get('date'),
                 start_time=validated_data.get('start_time'),
@@ -41,9 +39,9 @@ class RoomOrderCreateSerializer(serializers.Serializer):
                 phone=validated_data.get('phone'),
                 description=validated_data.get('description'),
                 room=validated_data.get('room'),
-                type='crm',
-                servis_type=validated_data.get('servis_type')
+                type='crm'
             )
+            # Create or get Client
             client, created = Client.objects.get_or_create(
                 phone=validated_data.get('phone'),
                 defaults={
@@ -52,14 +50,17 @@ class RoomOrderCreateSerializer(serializers.Serializer):
                 }
             )
             if not created:
+                # Update name if client already exists
                 client.name = validated_data.get('full_name')
                 client.save()
+            # Create ClientComment if description exists
             if validated_data.get('description'):
                 ClientComment.objects.create(
                     client=client,
                     date=room_order.date,
                     comment=validated_data.get('description')
                 )
+            # Create Income if price exists
             if validated_data.get('price') is not None:
                 category, _ = IncomeCategory.objects.get_or_create(name='Mijozlar')
                 Income.objects.create(
@@ -72,7 +73,7 @@ class RoomOrderCreateSerializer(serializers.Serializer):
 class RoomOrderListSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoomOrder
-        fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type', 'servis_type']
+        fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type']
 
 class RoomOrderUpdateSerializer(serializers.ModelSerializer):
     date = serializers.DateField(required=False)
@@ -83,11 +84,10 @@ class RoomOrderUpdateSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(required=False)
     description = serializers.CharField(required=False, allow_blank=True)
     room_id = serializers.UUIDField(required=False)
-    servis_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = RoomOrder
-        fields = ['date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'room_id', 'servis_type']
+        fields = ['date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'room_id']
 
     def validate(self, data):
         if 'room_id' in data:
