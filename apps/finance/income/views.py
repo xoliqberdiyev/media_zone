@@ -138,3 +138,21 @@ class IncomeUpdateApiView(generics.UpdateAPIView):
     lookup_field = 'id'
     serializer_class = serializers.IncomeUpdateSerializer
     queryset = Income.objects.all()
+
+class IncomeDeleteByIdApiView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="ID bo‘yicha Income yozuvini o‘chirish",
+        responses={204: 'No Content', 404: 'Not Found'}
+    )
+    def delete(self, request, id):
+        income = get_object_or_404(Income, id=id)
+        category = income.category
+        income.delete()
+        category_serializer = serializers.IncomeCategorySerializer(category)
+        return Response({
+            "success": True,
+            "message": "deleted!",
+            "category": category_serializer.data
+        }, status=204)
