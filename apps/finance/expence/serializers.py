@@ -38,3 +38,6 @@ class ExpenceUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Expence
         fields = ['price', 'date', 'comment']
+
+class ExpenceStatisticsSerializer(serializers.Serializer):
+    total_expence = serializers.IntegerField()
