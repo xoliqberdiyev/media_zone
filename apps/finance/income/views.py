@@ -148,7 +148,7 @@ class IncomeDeleteApiView(views.APIView):
                 "message": "Yozuv bu kategoriyada emas"
             }, status=400)
 
-        # Yozuvni o‘chirish
+        # Yozuvni o‘chirish (total_price modelda avtomatik yangilanadi)
         income.delete()
 
         # Yangilangan kategoriya ma’lumotlarini qaytarish
