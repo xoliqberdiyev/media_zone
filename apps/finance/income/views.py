@@ -124,3 +124,17 @@ class IncomeListApiView(generics.ListAPIView):
         if page is not None:
             return self.get_paginated_response(response_data)
         return Response(response_data)
+
+class IncomeDeleteApiView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, id):
+        income = get_object_or_404(Income, id=id)
+        income.delete()
+        return Response({"success": True, "message": "deleted!"}, status=204)
+
+class IncomeUpdateApiView(generics.UpdateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = 'id'
+    serializer_class = serializers.IncomeUpdateSerializer
+    queryset = Income.objects.all()
