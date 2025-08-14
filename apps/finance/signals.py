@@ -1,6 +1,5 @@
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
-from django.db.models import Sum
 from apps.finance.models import Income, IncomeCategory
 
 @receiver(pre_save, sender=Income)
