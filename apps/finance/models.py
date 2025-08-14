@@ -7,6 +7,12 @@ class IncomeCategory(BaseModel):
     def __str__(self):
         return f'{self.name}'
 
+class ExpenceCategory(BaseModel):
+    name = models.CharField(max_length=50, db_index=True, unique=True)
+
+    def __str__(self):
+        return f'{self.name}'
+
 class Income(BaseModel):
     category = models.ForeignKey(IncomeCategory, on_delete=models.CASCADE, related_name='incomes')
     price = models.PositiveBigIntegerField()
@@ -22,14 +28,6 @@ class Income(BaseModel):
     def delete(self, *args, **kwargs):
         return super().delete(*args, **kwargs)
 
-class ExpenceCategory(BaseModel):
-    name = models.CharField(max_length=50, db_index=True, unique=True)
-    total_price = models.PositiveBigIntegerField(default=0)
-
-    def __str__(self):
-        return f'{self.name} - {self.total_price}'
-
-
 class Expence(BaseModel):
     category = models.ForeignKey(ExpenceCategory, on_delete=models.CASCADE, related_name='expences')
     price = models.PositiveBigIntegerField()
@@ -40,14 +38,7 @@ class Expence(BaseModel):
         return f'{self.price} - {self.date} expence'
 
     def save(self, *args, **kwargs):
-        if self.pk:  # Update holati
-            old_instance = Expence.objects.get(pk=self.pk)
-            self.category.total_price -= old_instance.price
-        self.category.total_price += self.price
-        self.category.save()
         return super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        self.category.total_price -= self.price
-        self.category.save()
         return super().delete(*args, **kwargs)
