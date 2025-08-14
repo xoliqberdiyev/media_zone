@@ -8,7 +8,7 @@ env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = env.str("SECRET_KEY")
 
 DEBUG = env.bool("DEBUG")
-
+APPEND_SLASH = False
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 LOCAL_APPS = [

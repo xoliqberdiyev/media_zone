@@ -1,7 +1,5 @@
 from django.contrib.auth.hashers import make_password
-
 from rest_framework import serializers
-
 from apps.authentication import models
 
 
@@ -22,9 +20,7 @@ class LoginSerializer(serializers.Serializer):
 class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.User
-        fields = [
-            'id','first_name', 'last_name', 'username', 'password'
-        ]
+        fields = ['id', 'first_name', 'last_name', 'username', 'password']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -37,7 +33,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
         user.role = 'operator'
         user.save()
         return user
-    
+
     def update(self, instance, validated_data):
         instance.first_name = validated_data.get('first_name', instance.first_name)
         instance.last_name = validated_data.get('last_name', instance.last_name)
