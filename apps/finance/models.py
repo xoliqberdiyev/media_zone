@@ -1,5 +1,7 @@
 from django.db import models
+
 from apps.shared.models import BaseModel
+
 
 class IncomeCategory(BaseModel):
     name = models.CharField(max_length=50, db_index=True, unique=True)
@@ -8,12 +10,14 @@ class IncomeCategory(BaseModel):
     def __str__(self):
         return f'{self.name} - {self.total_price}'
 
+
 class ExpenceCategory(BaseModel):
     name = models.CharField(max_length=50, db_index=True, unique=True)
     total_price = models.PositiveBigIntegerField(default=0)
 
     def __str__(self):
         return f'{self.name} - {self.total_price}'
+
 
 class Income(BaseModel):
     category = models.ForeignKey(IncomeCategory, on_delete=models.CASCADE, related_name='incomes')
@@ -25,17 +29,15 @@ class Income(BaseModel):
         return f'{self.price} - {self.date} income'
 
     def save(self, *args, **kwargs):
-        if self.pk:  # Update holati
-            old_instance = Income.objects.get(pk=self.pk)
-            self.category.total_price -= old_instance.price
         self.category.total_price += self.price
         self.category.save()
-        return super().save(*args, **kwargs)
+        return super().save(args, kwargs)
 
-    def delete(self, *args, **kwargs):
+    def delete(self):
         self.category.total_price -= self.price
         self.category.save()
-        return super().delete(*args, **kwargs)
+        return super().delete()
+
 
 class Expence(BaseModel):
     category = models.ForeignKey(ExpenceCategory, on_delete=models.CASCADE, related_name='expences')
@@ -47,14 +49,11 @@ class Expence(BaseModel):
         return f'{self.price} - {self.date} expence'
 
     def save(self, *args, **kwargs):
-        if self.pk:  # Update holati
-            old_instance = Expence.objects.get(pk=self.pk)
-            self.category.total_price -= old_instance.price
         self.category.total_price += self.price
         self.category.save()
-        return super().save(*args, **kwargs)
+        return super().save(args, kwargs)
 
-    def delete(self, *args, **kwargs):
+    def delete(self):
         self.category.total_price -= self.price
         self.category.save()
-        return super().delete(*args, **kwargs)
+        return super().delete()

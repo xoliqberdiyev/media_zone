@@ -25,6 +25,7 @@ class IncomeCreateSerializer(serializers.Serializer):
         with transaction.atomic():
             income = Income.objects.create(**validated_data)
             return income
+        return None
 
 class IncomeListSerializer(serializers.ModelSerializer):
     category = serializers.StringRelatedField()

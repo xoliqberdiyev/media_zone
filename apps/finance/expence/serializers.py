@@ -1,7 +1,6 @@
 from django.db import transaction
 from rest_framework import serializers
 from apps.finance.models import Expence, ExpenceCategory
-from datetime import datetime
 
 class ExpenceCategorySerializer(serializers.ModelSerializer):
     class Meta:

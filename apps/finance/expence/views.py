@@ -1,4 +1,3 @@
-from django.db.models import Sum
 from django.db.models.functions import ExtractYear, ExtractMonth
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
@@ -7,10 +6,15 @@ from apps.finance.models import Expence, ExpenceCategory
 from apps.finance.expence import serializers
 from rest_framework import views, permissions
 from rest_framework.response import Response
+from apps.finance.models import Expence
+from apps.finance.expence.serializers import ExpenceStatisticsSerializer
+from django.db.models import Sum
 from datetime import datetime
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from apps.finance import models
 from apps.shared.pagination import CustomPageNumberPagination
+
 
 class ExpenceCreateApiView(generics.CreateAPIView):
     queryset = Expence.objects.all()
@@ -24,14 +28,14 @@ class ExpenceCategoryApiView(generics.ListAPIView):
 
 class ExpenceStatistsApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.ExpenceStatisticsSerializer
+    serializer_class = ExpenceStatisticsSerializer
 
     @swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter('start_date', openapi.IN_QUERY, description="Boshlanish sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=True),
             openapi.Parameter('end_date', openapi.IN_QUERY, description="Tugash sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=True),
         ],
-        responses={200: serializers.ExpenceStatisticsSerializer}
+        responses={200: ExpenceStatisticsSerializer}
     )
     def get(self, request):
         start_date = request.query_params.get('start_date')
@@ -73,12 +77,12 @@ class ExpenceMonthlyStatisticsApiView(views.APIView):
 
         return Response(result)
 
+
 class ExpenceListApiView(generics.ListAPIView):
     serializer_class = serializers.ExpenceListSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['date']
-    pagination_class = CustomPageNumberPagination
 
     @swagger_auto_schema(
         manual_parameters=[
@@ -99,20 +103,7 @@ class ExpenceListApiView(generics.ListAPIView):
         ]
     )
     def get(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page if page is not None else queryset, many=True)
-        response_data = {'results': serializer.data}
-
-        category_id = self.kwargs.get('id')
-        if category_id:
-            category = get_object_or_404(ExpenceCategory, id=category_id)
-            category_serializer = serializers.ExpenceCategorySerializer(category)
-            response_data['category'] = category_serializer.data
-
-        if page is not None:
-            return self.get_paginated_response(response_data)
-        return Response(response_data)
+        return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
         queryset = Expence.objects.all()
@@ -139,39 +130,37 @@ class ExpenceListApiView(generics.ListAPIView):
 
         return queryset.order_by('-date')
 
+
+
+
+# class ExpenceListApiView(generics.ListAPIView):
+#     serializer_class = serializers.ExpenceListSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+#     filter_backends = [DjangoFilterBackend]
+#     filterset_fields = ['date']
+#
+#     def get_queryset(self):
+#         queryset = Expence.objects.all()
+#         category_id = self.kwargs.get('id')
+#         start_date = self.request.query_params.get('start_date')
+#         end_date = self.request.query_params.get('end_date')
+#
+#         if category_id:
+#             queryset = queryset.filter(category__id=category_id)
+#         if start_date and end_date:
+#             queryset = queryset.filter(date__range=[start_date, end_date])
+#
+#         return queryset.order_by('-date')
+
+
+
 class ExpenceDeleteApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    @swagger_auto_schema(
-        operation_description="ID bo‘yicha Expence yozuvini o‘chirish. Agar category_id berilsa, yozuv shu kategoriyada ekanligi tekshiriladi.",
-        manual_parameters=[
-            openapi.Parameter('category_id', openapi.IN_QUERY, description="Kategoriya ID (ixtiyoriy)", type=openapi.TYPE_STRING, required=False),
-        ],
-        responses={204: 'No Content', 404: 'Not Found', 400: 'Bad Request'}
-    )
     def delete(self, request, id):
-        # Expence yozuvini topish
         expence = get_object_or_404(Expence, id=id)
-        category = expence.category
-
-        # Agar category_id berilgan bo‘lsa, tekshirish
-        category_id = request.query_params.get('category_id')
-        if category_id and str(category.id) != category_id:
-            return Response({
-                "success": False,
-                "message": "Yozuv bu kategoriyada emas"
-            }, status=400)
-
-        # Yozuvni o‘chirish (total_price modelda avtomatik yangilanadi)
         expence.delete()
-
-        # Yangilangan kategoriya ma’lumotlarini qaytarish
-        category_serializer = serializers.ExpenceCategorySerializer(category)
-        return Response({
-            "success": True,
-            "message": "Yozuv muvaffaqiyatli o‘chirildi",
-            "category": category_serializer.data
-        }, status=204)
+        return Response({"success": True, "message": "deleted!"}, status=status.HTTP_204_NO_CONTENT)
 
 class ExpenceUpdateApiView(generics.UpdateAPIView):
     serializer_class = serializers.ExpenceUpdateSerializer
