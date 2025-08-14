@@ -7,7 +7,7 @@ from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from apps.finance.models import Expence, ExpenceCategory
 from apps.finance.expence import serializers
-from datetime import datetime
+from datetime import datetime, timedelta
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
@@ -154,3 +154,33 @@ class ExpenceUpdateApiView(generics.UpdateAPIView):
         instance = serializer.instance
         super().perform_update(serializer)
         instance.category.update_total_price()
+
+class ExpenceLastPeriodApiView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter('last', openapi.IN_QUERY, description="Period: last_day, last_week, last_month, or last_year", type=openapi.TYPE_STRING, required=True),
+        ],
+        responses={200: openapi.Response('Total expense for the period', schema=openapi.Schema(type=openapi.TYPE_OBJECT, properties={'last': openapi.Schema(type=openapi.TYPE_INTEGER)}))}
+    )
+    def get(self, request):
+        last = request.query_params.get('last')
+        valid_periods = ['last_day', 'last_week', 'last_month', 'last_year']
+        if last not in valid_periods:
+            return Response({"error": "last parametri last_day, last_week, last_month yoki last_year bo‘lishi kerak"}, status=400)
+
+        today = datetime.now().date()
+        if last == 'last_day':
+            start_date = today - timedelta(days=1)
+        elif last == 'last_week':
+            start_date = today - timedelta(days=7)
+        elif last == 'last_month':
+            start_date = today - timedelta(days=30)
+        else:  # last_year
+            start_date = today - timedelta(days=365)
+
+        queryset = Expence.objects.filter(date__gte=start_date, date__lte=today)
+        total_expence = queryset.aggregate(Sum('price'))['price__sum'] or 0
+
+        return Response({last: total_expence})
