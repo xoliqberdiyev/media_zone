@@ -93,32 +93,12 @@ class IncomeMonthlyStatisticsApiView(views.APIView):
 #
 #         return queryset.order_by('-date')
 
+
 class IncomeListApiView(generics.ListAPIView):
     serializer_class = serializers.IncomeListSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['date']
-
-    @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter(
-                'start_date',
-                openapi.IN_QUERY,
-                description="Boshlanish sanasi (YYYY-MM-DD)",
-                type=openapi.TYPE_STRING,
-                required=False
-            ),
-            openapi.Parameter(
-                'end_date',
-                openapi.IN_QUERY,
-                description="Tugash sanasi (YYYY-MM-DD)",
-                type=openapi.TYPE_STRING,
-                required=False
-            ),
-        ]
-    )
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
         queryset = Income.objects.all()
@@ -144,6 +124,23 @@ class IncomeListApiView(generics.ListAPIView):
                 pass
 
         return queryset.order_by('-date')
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        category_id = self.kwargs.get('id')
+        if category_id:
+            category = get_object_or_404(IncomeCategory, id=category_id)
+            category_serializer = serializers.IncomeCategorySerializer(category)
+            return Response({
+                'category': category_serializer.data,
+                'results': serializer.data,
+                'page': self.paginator.page.number,
+                'page_size': self.paginator.page_size,
+                'total_pages': self.paginator.page.paginator.num_pages,
+                'total_items': self.paginator.page.paginator.count
+            })
+        return super().get(request, *args, **kwargs)
 
 class IncomeDeleteApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
