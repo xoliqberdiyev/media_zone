@@ -16,6 +16,12 @@ class Income(BaseModel):
     def __str__(self):
         return f'{self.price} - {self.date} income'
 
+    def save(self, *args, **kwargs):
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        return super().delete(*args, **kwargs)
+
 class ExpenceCategory(BaseModel):
     name = models.CharField(max_length=50, db_index=True, unique=True)
     total_price = models.PositiveBigIntegerField(default=0)
