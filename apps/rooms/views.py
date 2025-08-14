@@ -5,8 +5,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from apps.rooms import serializers, models
 from apps.shared.pagination import CustomPageNumberPagination
 from django.db.models import Sum, Count
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 
 class RoomListApiView(generics.ListAPIView):
     serializer_class = serializers.RoomListSerializer
@@ -17,16 +15,6 @@ class RoomOrderCreateApiView(generics.CreateAPIView):
     serializer_class = serializers.RoomOrderCreateSerializer
     queryset = models.RoomOrder.objects.all()
     permission_classes = [permissions.IsAuthenticated]
-
-    @swagger_auto_schema(
-        request_body=serializers.RoomOrderCreateSerializer,
-        responses={201: serializers.RoomOrderCreateSerializer}
-    )
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(serializer.data, status=201)
 
 class RoomOrderListApiView(generics.ListAPIView):
     serializer_class = serializers.RoomOrderListSerializer

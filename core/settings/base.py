@@ -115,9 +115,8 @@ USE_TZ = False
 STATIC_URL = 'resources/static/'
 STATIC_ROOT = BASE_DIR / 'resources/static'
 
-# MEDIA_URL = "https://1477816.servercore.cloud/"
-MEDIA_URL = '/media/'
-MEDIA_ROOT = '/var/www/backend/media_zone_crm/media'
+MEDIA_URL = "https://1477816.servercore.cloud/"
+
 
 
 

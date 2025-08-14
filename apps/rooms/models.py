@@ -3,6 +3,7 @@ from django.db import models
 from apps.shared.models import BaseModel
 from apps.shared.regex import phone_regex
 
+
 class Room(BaseModel):
     name = models.CharField(max_length=150)
     monthly_income = models.PositiveBigIntegerField(default=0)
@@ -24,17 +25,17 @@ class Room(BaseModel):
         self.monthly_income = total
         super().save(*args, **kwargs)
 
+
 class RoomOrder(BaseModel):
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
-    price = models.PositiveBigIntegerField(null=True, blank=True)
+    price = models.PositiveBigIntegerField(null=True, blank=True)  # Null qabul qiladi
     full_name = models.CharField(max_length=150)
     phone = models.CharField(max_length=15)
     description = models.TextField(null=True, blank=True)
     type = models.CharField(choices=[('crm', 'crm'), ('web', 'web')], max_length=3, default='crm')
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="room_orders")
-    servis_type = models.CharField(max_length=50, null=True, blank=True)  # Optional field
 
     def __str__(self):
         return self.full_name
@@ -50,6 +51,7 @@ class RoomOrder(BaseModel):
         self.room.monthly_income = total
         self.room.save()
         super().save(*args, **kwargs)
+
 
 class RoomImage(BaseModel):
     image = models.ImageField(upload_to="media_zone/room_images/")
