@@ -18,6 +18,7 @@ class RoomOrderCreateSerializer(serializers.Serializer):
     phone = serializers.CharField()
     description = serializers.CharField(required=False, allow_blank=True)
     room_id = serializers.UUIDField()
+    servis_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)  # Optional field
 
     def validate(self, data):
         try:
@@ -39,7 +40,8 @@ class RoomOrderCreateSerializer(serializers.Serializer):
                 phone=validated_data.get('phone'),
                 description=validated_data.get('description'),
                 room=validated_data.get('room'),
-                type='crm'
+                type='crm',
+                servis_type=validated_data.get('servis_type')
             )
             # Create or get Client
             client, created = Client.objects.get_or_create(
@@ -73,7 +75,7 @@ class RoomOrderCreateSerializer(serializers.Serializer):
 class RoomOrderListSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoomOrder
-        fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type']
+        fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type', 'servis_type']  # Included servis_type
 
 class RoomOrderUpdateSerializer(serializers.ModelSerializer):
     date = serializers.DateField(required=False)
@@ -84,10 +86,11 @@ class RoomOrderUpdateSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(required=False)
     description = serializers.CharField(required=False, allow_blank=True)
     room_id = serializers.UUIDField(required=False)
+    servis_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)  # Optional field
 
     class Meta:
         model = RoomOrder
-        fields = ['date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'room_id']
+        fields = ['date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'room_id', 'servis_type']  # Included servis_type
 
     def validate(self, data):
         if 'room_id' in data:
