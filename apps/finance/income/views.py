@@ -24,7 +24,7 @@ class IncomeCategoryApiView(generics.ListAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         for category in queryset:
-            category.update_total_price()  # Ensure total_price is up-to-date
+            category.update_total_price()
         return queryset
 
 class IncomeStatistsApiView(views.APIView):
@@ -54,6 +54,7 @@ class IncomeStatistsApiView(views.APIView):
         total_income = queryset.aggregate(Sum('price'))['price__sum'] or 0
 
         return Response({"total_income": total_income})
+
 
 class IncomeMonthlyStatisticsApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -100,14 +101,14 @@ class IncomeListApiView(generics.ListAPIView):
     )
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        page = self.paginate_queryset(queryset)
+        paginator = self.pagination_class()
+        page = paginator.paginate_queryset(queryset, request)
         serializer = self.get_serializer(page, many=True)
-        paginated_response = self.get_paginated_response(serializer.data)
         return Response({
-            'page': paginated_response.data['page'],
-            'page_size': paginated_response.data['page_size'],
-            'total_pages': paginated_response.data['total_pages'],
-            'total_items': paginated_response.data['count'],
+            'page': int(request.query_params.get('page', 1)),
+            'page_size': paginator.get_page_size(request),
+            'total_pages': paginator.page.paginator.num_pages,
+            'total_items': paginator.page.paginator.count,
             'results': serializer.data
         })
 
@@ -153,4 +154,4 @@ class IncomeUpdateApiView(generics.UpdateAPIView):
     def perform_update(self, serializer):
         instance = serializer.instance
         super().perform_update(serializer)
-        instance.category.update_total_price()  # Recalculate total_price after update
+        instance.category.update_total_price()
