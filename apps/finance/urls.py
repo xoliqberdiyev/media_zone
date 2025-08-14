@@ -23,7 +23,7 @@ urlpatterns = [
             path('category/<uuid:id>/income/list/', income_views.IncomeListApiView.as_view(), name='income_list'),
             path('<uuid:id>/delete/', income_views.IncomeDeleteApiView.as_view(), name='income_delete'),
             path('<uuid:id>/update/', income_views.IncomeUpdateApiView.as_view(), name='income_update'),
-            path('delete-by-id/<uuid:id>/', income_views.IncomeDeleteByIdApiView.as_view(), name='income_delete_by_id'),
+            # path('delete-by-id/<uuid:id>/', income_views.IncomeDeleteByIdApiView.as_view(), name='income_delete_by_id'),
         ]
     ))
 ]

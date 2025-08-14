@@ -128,31 +128,39 @@ class IncomeListApiView(generics.ListAPIView):
 class IncomeDeleteApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_description="ID bo‘yicha Income yozuvini o‘chirish. Agar category_id berilsa, yozuv shu kategoriyada ekanligi tekshiriladi.",
+        manual_parameters=[
+            openapi.Parameter('category_id', openapi.IN_QUERY, description="Kategoriya ID (ixtiyoriy)", type=openapi.TYPE_STRING, required=False),
+        ],
+        responses={204: 'No Content', 404: 'Not Found', 400: 'Bad Request'}
+    )
     def delete(self, request, id):
+        # Income yozuvini topish
         income = get_object_or_404(Income, id=id)
+        category = income.category
+
+        # Agar category_id berilgan bo‘lsa, tekshirish
+        category_id = request.query_params.get('category_id')
+        if category_id and str(category.id) != category_id:
+            return Response({
+                "success": False,
+                "message": "Yozuv bu kategoriyada emas"
+            }, status=400)
+
+        # Yozuvni o‘chirish
         income.delete()
-        return Response({"success": True, "message": "deleted!"}, status=204)
+
+        # Yangilangan kategoriya ma’lumotlarini qaytarish
+        category_serializer = serializers.IncomeCategorySerializer(category)
+        return Response({
+            "success": True,
+            "message": "Yozuv muvaffaqiyatli o‘chirildi",
+            "category": category_serializer.data
+        }, status=204)
 
 class IncomeUpdateApiView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'id'
     serializer_class = serializers.IncomeUpdateSerializer
     queryset = Income.objects.all()
-
-class IncomeDeleteByIdApiView(views.APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    @swagger_auto_schema(
-        operation_description="ID bo‘yicha Income yozuvini o‘chirish",
-        responses={204: 'No Content', 404: 'Not Found'}
-    )
-    def delete(self, request, id):
-        income = get_object_or_404(Income, id=id)
-        category = income.category
-        income.delete()
-        category_serializer = serializers.IncomeCategorySerializer(category)
-        return Response({
-            "success": True,
-            "message": "deleted!",
-            "category": category_serializer.data
-        }, status=204)
