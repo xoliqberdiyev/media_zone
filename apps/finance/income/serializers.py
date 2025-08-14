@@ -2,10 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 from apps.finance.models import Income, IncomeCategory
 
-
 class IncomeCategorySerializer(serializers.ModelSerializer):
-    total_price = serializers.IntegerField(source='total_price_calc')
-
     class Meta:
         model = IncomeCategory
         fields = ['id', 'name', 'total_price']
