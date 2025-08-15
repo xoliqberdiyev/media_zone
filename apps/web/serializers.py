@@ -1,8 +1,8 @@
 from django.db import transaction
 from rest_framework import serializers
-from apps.rooms.models import Room, RoomOrder, RoomImage
+from apps.rooms.models import Room, RoomOrder
 from apps.web.models import Image, Partner, Video, Team
-from apps.client.models import Client
+from apps.client.models import Client, ClientComment
 from apps.finance.models import Income, IncomeCategory
 
 class ListRoomImagesSerializer(serializers.ModelSerializer):
@@ -39,7 +39,7 @@ class ImageListSerializer(serializers.ModelSerializer):
         fields = ['id', 'image']
 
 class RoomOrderWebSerializer(serializers.ModelSerializer):
-    price = serializers.IntegerField(required=False, allow_null=True)  # Majburiy emas
+    price = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
         model = RoomOrder
@@ -47,31 +47,41 @@ class RoomOrderWebSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         with transaction.atomic():
-            room = RoomOrder.objects.create(
+            room_order = RoomOrder.objects.create(
                 date=validated_data.get('date'),
                 start_time=validated_data.get('start_time'),
                 end_time=validated_data.get('end_time'),
-                price=validated_data.get('price'),  # None bo‘lsa, null saqlanadi
+                price=validated_data.get('price'),
                 full_name=validated_data.get('full_name'),
                 phone=validated_data.get('phone'),
                 description=validated_data.get('description'),
                 room=validated_data.get('room'),
                 type='web'
             )
-            Client.objects.get_or_create(
-                phone=room.phone,
-                name=room.full_name,
-                description=room.description,
-                status='new',
+            client, created = Client.objects.get_or_create(
+                phone=room_order.phone,
+                defaults={
+                    'name': room_order.full_name,
+                    'status': 'new'
+                }
             )
-            if room.price:  # Faqat price mavjud bo‘lsa Income yaratiladi
+            if not created:
+                client.name = room_order.full_name
+                client.save()
+            if room_order.description:
+                ClientComment.objects.create(
+                    client=client,
+                    date=room_order.date,
+                    comment=room_order.description  # Tuzatildi: description -> comment
+                )
+            if room_order.price:
                 category, _ = IncomeCategory.objects.get_or_create(name='Mijozlar')
                 Income.objects.create(
                     category=category,
-                    price=room.price,
-                    date=room.date,
+                    price=room_order.price,
+                    date=room_order.date,
                 )
-            return room
+            return room_order
 
 class VideoListSerializer(serializers.ModelSerializer):
     class Meta:
