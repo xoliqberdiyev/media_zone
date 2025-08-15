@@ -1,6 +1,6 @@
 from django.db import transaction
 from rest_framework import serializers
-from apps.rooms.models import Room, RoomOrder
+from apps.rooms.models import Room, RoomOrder, RoomImage
 from apps.web.models import Image, Partner, Video, Team
 from apps.client.models import Client, ClientComment
 from apps.finance.models import Income, IncomeCategory
