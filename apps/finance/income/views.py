@@ -209,10 +209,19 @@ class IncomeCategoryTotalApiView(views.APIView):
         except ValueError:
             return Response({"error": "Sana formati noto‘g‘ri (YYYY-MM-DD)"}, status=400)
 
-        queryset = Income.objects.filter(date__range=[start_date, end_date]) \
-            .values('category__name') \
-            .annotate(total_price=Sum('price')) \
-            .order_by('category__name')
+        # Get all categories
+        categories = IncomeCategory.objects.all()
+        result = []
+        for category in categories:
+            total_price = Income.objects.filter(
+                category=category,
+                date__range=[start_date, end_date]
+            ).aggregate(total_price=Sum('price'))['total_price'] or 0
+            result.append({
+                'id': category.id,
+                'name': category.name,
+                'total_price': total_price
+            })
 
-        serializer = self.serializer_class(queryset, many=True)
+        serializer = self.serializer_class(result, many=True)
         return Response(serializer.data)

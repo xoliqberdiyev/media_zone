@@ -43,6 +43,9 @@ class IncomeStatisticsSerializer(serializers.Serializer):
     total_income = serializers.IntegerField()
 
 # Add to income/serializers.py
-class IncomeCategoryTotalSerializer(serializers.Serializer):
-    category = serializers.CharField(source='category__name')
+class IncomeCategoryTotalSerializer(serializers.ModelSerializer):
     total_price = serializers.IntegerField()
+
+    class Meta:
+        model = IncomeCategory
+        fields = ['id', 'name', 'total_price']
