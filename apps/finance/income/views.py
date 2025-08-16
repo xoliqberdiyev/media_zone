@@ -184,3 +184,35 @@ class IncomeLastPeriodApiView(views.APIView):
         total_income = queryset.aggregate(Sum('price'))['price__sum'] or 0
 
         return Response({last: total_income})
+
+# Add to income/views.py
+class IncomeCategoryTotalApiView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.IncomeCategoryTotalSerializer
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter('start_date', openapi.IN_QUERY, description="Boshlanish sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=True),
+            openapi.Parameter('end_date', openapi.IN_QUERY, description="Tugash sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=True),
+        ],
+        responses={200: serializers.IncomeCategoryTotalSerializer(many=True)}
+    )
+    def get(self, request):
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        if not (start_date and end_date):
+            return Response({"error": "start_date va end_date kerak (YYYY-MM-DD)"}, status=400)
+
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({"error": "Sana formati noto‘g‘ri (YYYY-MM-DD)"}, status=400)
+
+        queryset = Income.objects.filter(date__range=[start_date, end_date]) \
+            .values('category__name') \
+            .annotate(total_price=Sum('price')) \
+            .order_by('category__name')
+
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)
