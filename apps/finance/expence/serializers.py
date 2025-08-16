@@ -41,3 +41,8 @@ class ExpenceUpdateSerializer(serializers.ModelSerializer):
 
 class ExpenceStatisticsSerializer(serializers.Serializer):
     total_expence = serializers.IntegerField()
+
+# Add to expence/serializers.py
+class ExpenceCategoryTotalSerializer(serializers.Serializer):
+    category = serializers.CharField(source='category__name')
+    total_price = serializers.IntegerField()
