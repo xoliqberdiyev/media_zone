@@ -34,7 +34,8 @@ class RoomOrder(BaseModel):
     description = models.TextField(null=True, blank=True)
     type = models.CharField(choices=[('crm', 'crm'), ('web', 'web')], max_length=3, default='crm')
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="room_orders")
-    servis_type = models.CharField(max_length=50, null=True, blank=True)  # Optional field
+    servis_type = models.CharField(max_length=50, null=True, blank=True)
+    servis_price = models.PositiveBigIntegerField(null=True, blank=True)  # New optional field
 
     def __str__(self):
         return self.full_name

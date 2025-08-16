@@ -18,7 +18,8 @@ class RoomOrderCreateSerializer(serializers.Serializer):
     phone = serializers.CharField()
     description = serializers.CharField(required=False, allow_blank=True)
     room_id = serializers.UUIDField()
-    servis_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)  # Optional field
+    servis_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    servis_price = serializers.IntegerField(required=False, allow_null=True)  # New optional field
 
     def validate(self, data):
         try:
@@ -41,7 +42,8 @@ class RoomOrderCreateSerializer(serializers.Serializer):
                 description=validated_data.get('description'),
                 room=validated_data.get('room'),
                 type='crm',
-                servis_type=validated_data.get('servis_type')
+                servis_type=validated_data.get('servis_type'),
+                servis_price=validated_data.get('servis_price')  # Save servis_price
             )
             # Create or get Client
             client, created = Client.objects.get_or_create(
@@ -62,12 +64,15 @@ class RoomOrderCreateSerializer(serializers.Serializer):
                     date=room_order.date,
                     comment=validated_data.get('description')
                 )
-            # Create Income if price exists
-            if validated_data.get('price') is not None:
+            # Create Income if price or servis_price exists
+            total_price = validated_data.get('price') or 0
+            if validated_data.get('servis_price') is not None:
+                total_price += validated_data.get('servis_price')
+            if total_price > 0:
                 category, _ = IncomeCategory.objects.get_or_create(name='Mijozlar')
                 Income.objects.create(
                     category=category,
-                    price=validated_data.get('price'),
+                    price=total_price,
                     date=room_order.date,
                 )
             return room_order
@@ -75,7 +80,7 @@ class RoomOrderCreateSerializer(serializers.Serializer):
 class RoomOrderListSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoomOrder
-        fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type', 'servis_type']  # Included servis_type
+        fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type', 'servis_type', 'servis_price']  # Added servis_price
 
 class RoomOrderUpdateSerializer(serializers.ModelSerializer):
     date = serializers.DateField(required=False)
@@ -86,11 +91,12 @@ class RoomOrderUpdateSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(required=False)
     description = serializers.CharField(required=False, allow_blank=True)
     room_id = serializers.UUIDField(required=False)
-    servis_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)  # Optional field
+    servis_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    servis_price = serializers.IntegerField(required=False, allow_null=True)  # Added servis_price
 
     class Meta:
         model = RoomOrder
-        fields = ['date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'room_id', 'servis_type']  # Included servis_type
+        fields = ['date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'room_id', 'servis_type', 'servis_price']  # Added servis_price
 
     def validate(self, data):
         if 'room_id' in data:
@@ -119,11 +125,17 @@ class RoomOrderUpdateSerializer(serializers.ModelSerializer):
                     date=validated_data.get('date', instance.date),
                     comment=validated_data['description']
                 )
-            if 'price' in validated_data and validated_data['price'] is not None:
-                category, _ = IncomeCategory.objects.get_or_create(name='Mijozlar')
-                Income.objects.create(
-                    category=category,
-                    price=validated_data['price'],
-                    date=validated_data.get('date', instance.date),
-                )
+            if 'price' in validated_data or 'servis_price' in validated_data:
+                total_price = validated_data.get('price', instance.price) or 0
+                if validated_data.get('servis_price') is not None:
+                    total_price += validated_data.get('servis_price')
+                else:
+                    total_price += instance.servis_price or 0
+                if total_price > 0:
+                    category, _ = IncomeCategory.objects.get_or_create(name='Mijozlar')
+                    Income.objects.create(
+                        category=category,
+                        price=total_price,
+                        date=validated_data.get('date', instance.date),
+                    )
             return super().update(instance, validated_data)
