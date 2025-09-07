@@ -36,6 +36,7 @@ class RoomOrder(BaseModel):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name="room_orders")
     servis_type = models.CharField(max_length=50, null=True, blank=True)
     servis_price = models.PositiveBigIntegerField(null=True, blank=True)  # New optional field
+    job = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.full_name

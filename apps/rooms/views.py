@@ -8,10 +8,12 @@ from django.db.models import Sum, Count
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
+
 class RoomListApiView(generics.ListAPIView):
     serializer_class = serializers.RoomListSerializer
-    queryset = models.Room.objects.all()
+    queryset = models.Room.objects.prefetch_related('room_orders')
     permission_classes = [permissions.IsAuthenticated]
+
 
 class RoomOrderCreateApiView(generics.CreateAPIView):
     serializer_class = serializers.RoomOrderCreateSerializer

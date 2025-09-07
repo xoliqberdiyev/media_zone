@@ -4,10 +4,6 @@ from apps.rooms.models import Room, RoomOrder
 from apps.client.models import Client, ClientComment
 from apps.finance.models import Income, IncomeCategory
 
-class RoomListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Room
-        fields = ['id', 'name_uz', 'name_ru', 'monthly_income']
 
 class RoomOrderCreateSerializer(serializers.Serializer):
     date = serializers.DateField()
@@ -20,6 +16,7 @@ class RoomOrderCreateSerializer(serializers.Serializer):
     room_id = serializers.UUIDField()
     servis_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     servis_price = serializers.IntegerField(required=False, allow_null=True)  # New optional field
+    job = serializers.CharField(required=False, allow_blank=True)
 
     def validate(self, data):
         try:
@@ -43,7 +40,8 @@ class RoomOrderCreateSerializer(serializers.Serializer):
                 room=validated_data.get('room'),
                 type='crm',
                 servis_type=validated_data.get('servis_type'),
-                servis_price=validated_data.get('servis_price')  # Save servis_price
+                servis_price=validated_data.get('servis_price'),
+                job=validated_data.get('job'),
             )
             # Create or get Client
             client, created = Client.objects.get_or_create(
@@ -80,7 +78,7 @@ class RoomOrderCreateSerializer(serializers.Serializer):
 class RoomOrderListSerializer(serializers.ModelSerializer):
     class Meta:
         model = RoomOrder
-        fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type', 'servis_type', 'servis_price']  # Added servis_price
+        fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type', 'servis_type', 'servis_price', 'job'] 
 
 class RoomOrderUpdateSerializer(serializers.ModelSerializer):
     date = serializers.DateField(required=False)
@@ -93,10 +91,9 @@ class RoomOrderUpdateSerializer(serializers.ModelSerializer):
     room_id = serializers.UUIDField(required=False)
     servis_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     servis_price = serializers.IntegerField(required=False, allow_null=True)  # Added servis_price
-
     class Meta:
         model = RoomOrder
-        fields = ['date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'room_id', 'servis_type', 'servis_price']  # Added servis_price
+        fields = ['date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'room_id', 'servis_type', 'servis_price', 'job']  # Added servis_price
 
     def validate(self, data):
         if 'room_id' in data:
@@ -139,3 +136,11 @@ class RoomOrderUpdateSerializer(serializers.ModelSerializer):
                         date=validated_data.get('date', instance.date),
                     )
             return super().update(instance, validated_data)
+        
+
+class RoomListSerializer(serializers.ModelSerializer):
+    room_orders = RoomOrderListSerializer(many=True)
+
+    class Meta:
+        model = Room
+        fields = ['id', 'name_uz', 'name_ru', 'monthly_income', 'room_orders']
