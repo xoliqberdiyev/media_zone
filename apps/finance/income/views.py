@@ -1,20 +1,27 @@
+from datetime import datetime, timedelta
+
+from django.db.models import Sum
 from django.db.models.functions import ExtractYear, ExtractMonth
 from django.shortcuts import get_object_or_404
+
+from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_framework import generics, views, permissions
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
-from django_filters.rest_framework import DjangoFilterBackend
-from apps.finance.models import Income, IncomeCategory
-from apps.finance.income import serializers
-from datetime import datetime, timedelta
-from django.db.models import Sum
+
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+
+from apps.finance.income import serializers
+from apps.finance.models import Income, IncomeCategory
+
 
 class IncomeCreateApiView(generics.CreateAPIView):
     queryset = Income.objects.all()
     serializer_class = serializers.IncomeCreateSerializer
     permission_classes = [permissions.IsAuthenticated]
+
 
 class IncomeCategoryApiView(generics.ListAPIView):
     serializer_class = serializers.IncomeCategorySerializer
@@ -27,17 +34,11 @@ class IncomeCategoryApiView(generics.ListAPIView):
             category.update_total_price()
         return queryset
 
+
 class IncomeStatistsApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.IncomeStatisticsSerializer
 
-    @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter('start_date', openapi.IN_QUERY, description="Boshlanish sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=True),
-            openapi.Parameter('end_date', openapi.IN_QUERY, description="Tugash sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=True),
-        ],
-        responses={200: serializers.IncomeStatisticsSerializer}
-    )
     def get(self, request):
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
@@ -54,6 +55,7 @@ class IncomeStatistsApiView(views.APIView):
         total_income = queryset.aggregate(Sum('price'))['price__sum'] or 0
 
         return Response({"total_income": total_income})
+
 
 class IncomeMonthlyStatisticsApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -78,10 +80,12 @@ class IncomeMonthlyStatisticsApiView(views.APIView):
 
         return Response(result)
 
+
 class IncomeListPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
+
 
 class IncomeListApiView(generics.ListAPIView):
     serializer_class = serializers.IncomeListSerializer
@@ -90,14 +94,6 @@ class IncomeListApiView(generics.ListAPIView):
     filterset_fields = ['date']
     pagination_class = IncomeListPagination
 
-    @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter('start_date', openapi.IN_QUERY, description="Boshlanish sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=False),
-            openapi.Parameter('end_date', openapi.IN_QUERY, description="Tugash sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=False),
-            openapi.Parameter('page', openapi.IN_QUERY, description="Sahifa raqami", type=openapi.TYPE_INTEGER, required=False),
-            openapi.Parameter('page_size', openapi.IN_QUERY, description="Sahifadagi elementlar soni", type=openapi.TYPE_INTEGER, required=False),
-        ]
-    )
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         paginator = self.pagination_class()
@@ -136,6 +132,7 @@ class IncomeListApiView(generics.ListAPIView):
 
         return queryset.order_by('-date')
 
+
 class IncomeDeleteApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -143,6 +140,7 @@ class IncomeDeleteApiView(views.APIView):
         income = get_object_or_404(Income, id=id)
         income.delete()
         return Response({"success": True, "message": "deleted!"}, status=204)
+
 
 class IncomeUpdateApiView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -155,15 +153,10 @@ class IncomeUpdateApiView(generics.UpdateAPIView):
         super().perform_update(serializer)
         instance.category.update_total_price()
 
+
 class IncomeLastPeriodApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter('last', openapi.IN_QUERY, description="Period: last_day, last_week, last_month, or last_year", type=openapi.TYPE_STRING, required=True),
-        ],
-        responses={200: openapi.Response('Total income for the period', schema=openapi.Schema(type=openapi.TYPE_OBJECT, properties={'last': openapi.Schema(type=openapi.TYPE_INTEGER)}))}
-    )
     def get(self, request):
         last = request.query_params.get('last')
         valid_periods = ['last_day', 'last_week', 'last_month', 'last_year']
@@ -190,13 +183,6 @@ class IncomeCategoryTotalApiView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = serializers.IncomeCategoryTotalSerializer
 
-    @swagger_auto_schema(
-        manual_parameters=[
-            openapi.Parameter('start_date', openapi.IN_QUERY, description="Boshlanish sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=True),
-            openapi.Parameter('end_date', openapi.IN_QUERY, description="Tugash sanasi (YYYY-MM-DD)", type=openapi.TYPE_STRING, required=True),
-        ],
-        responses={200: serializers.IncomeCategoryTotalSerializer(many=True)}
-    )
     def get(self, request):
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
@@ -209,7 +195,6 @@ class IncomeCategoryTotalApiView(views.APIView):
         except ValueError:
             return Response({"error": "Sana formati noto‘g‘ri (YYYY-MM-DD)"}, status=400)
 
-        # Get all categories
         categories = IncomeCategory.objects.all()
         result = []
         for category in categories:

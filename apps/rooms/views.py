@@ -1,12 +1,13 @@
+from django.db.models import Sum
 from django.shortcuts import get_object_or_404
+
+from django_filters.rest_framework import DjangoFilterBackend
+
 from rest_framework import generics, permissions
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
+
 from apps.rooms import serializers, models
 from apps.shared.pagination import CustomPageNumberPagination
-from django.db.models import Sum, Count
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 
 
 class RoomListApiView(generics.ListAPIView):
@@ -20,15 +21,12 @@ class RoomOrderCreateApiView(generics.CreateAPIView):
     queryset = models.RoomOrder.objects.all()
     permission_classes = [permissions.IsAuthenticated]
 
-    @swagger_auto_schema(
-        request_body=serializers.RoomOrderCreateSerializer,
-        responses={201: serializers.RoomOrderCreateSerializer}
-    )
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return Response(serializer.data, status=201)
+
 
 class RoomOrderListApiView(generics.ListAPIView):
     serializer_class = serializers.RoomOrderListSerializer
@@ -46,7 +44,7 @@ class RoomOrderListApiView(generics.ListAPIView):
 
     def get_queryset(self):
         room_id = self.kwargs.get('room_id')
-        queryset = models.RoomOrder.objects.filter(room_id=room_id)
+        queryset = models.RoomOrder.objects.filter(room_id=room_id).exclude(is_deleted=True)
         start_date = self.request.query_params.get('start_date')
         end_date = self.request.query_params.get('end_date')
         if start_date and end_date:
@@ -84,15 +82,24 @@ class RoomOrderListApiView(generics.ListAPIView):
             'results': paginated_response.get('results', serializer.data)
         })
 
-class RoomOrderDeleteApiView(generics.DestroyAPIView):
+
+class RoomOrderDeleteApiView(generics.GenericAPIView):
     queryset = models.RoomOrder.objects.all()
     permission_classes = [permissions.IsAuthenticated]
-    lookup_field = 'id'
+    serializer_class = None
 
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.delete()
-        return Response({"message": "RoomOrder deleted successfully"})
+    def delete(self, request, id):
+        room_order = get_object_or_404(models.RoomOrder, id=id)
+        room_order.is_deleted = True
+        room_order.save()
+        return Response(
+            {
+                "success": True,
+                'message': 'deleted',
+            },
+            status=200
+        )
+
 
 class RoomOrderUpdateApiView(generics.UpdateAPIView):
     serializer_class = serializers.RoomOrderUpdateSerializer
@@ -105,4 +112,18 @@ class RoomOrderUpdateApiView(generics.UpdateAPIView):
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+        return Response(serializer.data)
+    
+
+class DeletedRoomOrdersApiView(generics.GenericAPIView):
+    serializer_class = serializers.RoomOrderListSerializer
+    queryset = models.RoomOrder.objects.exclude(is_deleted=False)
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        page = self.paginate_queryset(self.queryset)
+        if page is not None:
+            serializer = self.serializer_class(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serialzier = self.serializer_class(self.queryset)
         return Response(serializer.data)

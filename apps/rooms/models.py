@@ -37,6 +37,7 @@ class RoomOrder(BaseModel):
     servis_type = models.CharField(max_length=50, null=True, blank=True)
     servis_price = models.PositiveBigIntegerField(null=True, blank=True)  # New optional field
     job = models.TextField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
         return self.full_name
@@ -52,6 +53,7 @@ class RoomOrder(BaseModel):
         self.room.monthly_income = total
         self.room.save()
         super().save(*args, **kwargs)
+
 
 class RoomImage(BaseModel):
     image = models.ImageField(upload_to="media_zone/room_images/")

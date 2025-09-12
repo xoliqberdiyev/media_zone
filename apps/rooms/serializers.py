@@ -139,8 +139,11 @@ class RoomOrderUpdateSerializer(serializers.ModelSerializer):
         
 
 class RoomListSerializer(serializers.ModelSerializer):
-    room_orders = RoomOrderListSerializer(many=True)
+    room_orders = serializers.SerializerMethodField(method_name='get_room_orders')
 
     class Meta:
         model = Room
         fields = ['id', 'name_uz', 'name_ru', 'monthly_income', 'room_price_per_hour', 'room_orders']
+
+    def get_room_orders(self, obj):
+        return RoomOrderListSerializer(obj.room_orders.exclude(is_deleted=True), many=True).data
