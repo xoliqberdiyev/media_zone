@@ -123,8 +123,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'authentication.User'
 
-DEFAULT_FILE_STORAGE="storages.backends.s3boto3.S3Boto3Storage"
-
 
 from core.packages.jazzmin import *
 from core.packages.swagger import *
