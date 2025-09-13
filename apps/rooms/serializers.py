@@ -76,9 +76,15 @@ class RoomOrderCreateSerializer(serializers.Serializer):
             return room_order
 
 class RoomOrderListSerializer(serializers.ModelSerializer):
+    room_name = serializers.SerializerMethodField(method_name='get_room_name')
+
     class Meta:
         model = RoomOrder
-        fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type', 'servis_type', 'servis_price', 'job'] 
+        fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type', 'servis_type', 'servis_price', 'job', 'room_name'] 
+
+    def get_room_name(self, obj):
+        return obj.room.name
+
 
 class RoomOrderUpdateSerializer(serializers.ModelSerializer):
     date = serializers.DateField(required=False)
