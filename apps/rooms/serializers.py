@@ -17,6 +17,7 @@ class RoomOrderCreateSerializer(serializers.Serializer):
     servis_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     servis_price = serializers.IntegerField(required=False, allow_null=True)  # New optional field
     job = serializers.CharField(required=False, allow_blank=True)
+    prepayment_price = serializers.IntegerField(required=False)
 
     def validate(self, data):
         try:
@@ -42,6 +43,7 @@ class RoomOrderCreateSerializer(serializers.Serializer):
                 servis_type=validated_data.get('servis_type'),
                 servis_price=validated_data.get('servis_price'),
                 job=validated_data.get('job'),
+                prepayment_price=validated_data.get('prepayment_price'),
             )
             # Create or get Client
             client, created = Client.objects.get_or_create(
@@ -80,7 +82,7 @@ class RoomOrderListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RoomOrder
-        fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type', 'servis_type', 'servis_price', 'job', 'room_name'] 
+        fields = ['id', 'date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'type', 'servis_type', 'servis_price', 'job', 'room_name', 'prepayment_price'] 
 
     def get_room_name(self, obj):
         return obj.room.name
@@ -96,10 +98,11 @@ class RoomOrderUpdateSerializer(serializers.ModelSerializer):
     description = serializers.CharField(required=False, allow_blank=True)
     room_id = serializers.UUIDField(required=False)
     servis_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    servis_price = serializers.IntegerField(required=False, allow_null=True)  # Added servis_price
+    servis_price = serializers.IntegerField(required=False, allow_null=True)
+    
     class Meta:
         model = RoomOrder
-        fields = ['date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'room_id', 'servis_type', 'servis_price', 'job']  # Added servis_price
+        fields = ['date', 'start_time', 'end_time', 'price', 'full_name', 'phone', 'description', 'room_id', 'servis_type', 'servis_price', 'job', 'prepayment_price']  # Added servis_price
 
     def validate(self, data):
         if 'room_id' in data:

@@ -38,6 +38,7 @@ class RoomOrder(BaseModel):
     servis_price = models.PositiveBigIntegerField(null=True, blank=True)  # New optional field
     job = models.TextField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False)
+    prepayment_price = models.PositiveBigIntegerField(default=0, null=True)
 
     def __str__(self):
         return self.full_name
